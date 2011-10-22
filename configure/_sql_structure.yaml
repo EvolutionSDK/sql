@@ -1,0 +1,20 @@
+book:
+  singular: book
+  plural: books
+  fields:
+    title: string
+    description: text
+  hasOne:
+    - author
+
+author:
+  singular: author
+  plural: authors
+  fields:
+    name: string
+
+shelf:
+  fields:
+    category: string
+  hasMany:
+    - book
