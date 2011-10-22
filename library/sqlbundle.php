@@ -27,7 +27,7 @@ class SQLBundle {
 			}
 			$sql[$table] = $relations;
 		}
-		
+				
 		/**
 		 * Save the DB structure
 		 */
