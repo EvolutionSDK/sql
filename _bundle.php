@@ -22,6 +22,9 @@ class Bundle extends SQLBundle {
 		parent::__construct($dir);
 		// establish the default mysql connection or throw an error
 		// run service binding for connection established
+		
+		Service::bind('Evolution\SQL\Bundle::build_architecture', 'bundles:loaded');
+		Configure::add('sql.connection', 'default', 'mysql://root@localhost/test');
 	}
 	public function __bundle_response($method = false) {
 		//if(!isset($this->connections['default']))
