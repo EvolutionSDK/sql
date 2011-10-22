@@ -9,6 +9,11 @@ namespace Evolution\SQL;
 class List {
 	
 	/**
+	 * DB Connection
+	 */
+	public $_connection = 'default';
+	
+	/**
 	 * Tables
 	 */
 	public $_table;
@@ -50,8 +55,9 @@ class List {
 	 * @param string $table 
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function __construct($table = false) {
+	public function __construct($table = false, $connection = false) {
 		if($table) $this->_table = $table;
+		if($connection) $this->_connection = $connection;
 		
 		/**
 		 * Add default table to tables select
@@ -353,6 +359,144 @@ class List {
 	public function sum($column) {
 		if($this->_sum[$column]) $this->_run_query('sum', $column);
 		return $this->_sum[$column];
+	}
+	
+	/**
+	 * Get the current total page count
+	 *
+	 * @return void
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function current_page_count() {
+		$paging = $this->paging();
+		return max(0, min($paging->length, $paging->items - ($paging->page - 1) * $paging->length));
+	}
+	
+	public function _run_query($count = false, $extra = false) {
+		if($count === 'debug') {
+			$count = false;
+			$debug = true;
+		}
+		
+		/**
+		 * Create a blank condition statement
+		 */
+		$cond = ' ';
+		
+		/**
+		 * Process query conditions
+		 */
+		if(count($this->_query_cond) > 0) {
+			$cond .= 'WHERE ';
+			foreach($this->_query_cond as $key => $condi) {
+				if(count($this->_query_cond) > 1 && $key != 0) $cond .= '&& ';
+				$cond .= $condi.' ';
+			}
+		}
+		
+		/**
+		 * Process Group By Conditions
+		 */
+		if(count($this->_group_cond) > 0) {
+			foreach($this->_group_cond as $key => $condi) {
+				$gc[] = $count == 'sum' ? "`_group`" : "`$condi`";
+			}
+			$gc = implode(', ', $gc);
+			$cond .= 'GROUP BY '.$gc;
+		}
+		
+		/**
+		 * Process Order Conditions
+		 */
+		if((!$count || $count == 'sum') && count($this->_order_cond) > 0) {
+			$cond .= 'ORDER BY ';
+			foreach($this->_order_cond as $key => $condi) {
+				if(count($this->_order_cond) > 1 && $key != 0) $cond .= ', ';
+				$cond .= $condi.' ';
+			}
+		}
+		
+		/**
+		 * Set Result Limit
+		 */
+		if(!$count && $this->_limit) $cond .= 'LIMIT '.$this->_limit.' ';
+		
+		/**
+		 * Grab the fields to select
+		 */
+		$fields_select = $this->_fields_select;
+		
+		/**
+		 * Set us to grab the row count
+		 */
+		if($count && $count != 'sum') 
+			$fields_select = $this->_distinct_cond ? "COUNT(DISTINCT $this->_distinct_cond) AS `ct`" : "COUNT(*) as `ct`";
+		
+		/**
+		 * Get the sum of a row
+		 */
+		else if($count == 'sum') {
+			if(count($this->_group_cond) == 0) $fields_select = "SUM(`$extra`) AS `ct`";
+			else if(count($this->_group_cond) == 1) $fields_select = "SUM(`$extra`) as `ct`, ".$this->_group_cond[0]." as `_group`";
+		}
+		
+		/**
+		 * Grab the distinct query item if one exists
+		 */
+		$distinct = $this->_distinct_cond ? "DISTINCT $this->_distinct_cond, " : '';
+		
+		/**
+		 * Prepare the query to run
+		 */
+		$query = $this->_custom_query ? ($count ? $this->_custom_count_query : $this->_custom_query) : "SELECT $fields_select FROM $this->_tables_select $cond";
+		
+		/**
+		 * Return the query that will be run for debug purposes
+		 */
+		if(isset($debug) && $debug) return $query;
+		
+		/**
+		 * Run query
+		 */
+		$results = e::sql($this->_connection)->query($query);
+		
+		/**
+		 * Return the count total count of the rows
+		 */
+		if($count && $count != 'sum') {
+			$cr = $results->row();
+			$this->_count = $cr['ct'];
+		}
+		
+		/**
+		 * Return the sum of the row
+		 */
+		else if($count == 'sum') {
+			if(count($this->_group_cond) == 0) {
+				$cr = $results->row();
+				$this->_sum[$extra] = $ct['ct'];
+			}
+			
+			else if(count($this->_group_cond) == 1) {
+				while($row = $results->row()) $this->_sum[$extra][$row['_group_cond']] = $row['ct'];
+			}
+			
+			return true;
+		}
+		
+		/**
+		 * Return the raw results
+		 */
+		if($this->_raw) {
+			$this->_results = $results->all();
+			$this->_has_query = true;
+			return;
+		}
+		
+		$pp = array();
+		while($row = $results->row()) $pp[] = $this->_custom_query ? $row : 'MODEL';
+		$this->_results = $pp;
+		$this->_has_query = true;
 	}
 	
 }
