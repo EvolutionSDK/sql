@@ -32,7 +32,7 @@ class List {
 	protected $_query_cond = array();
 	protected $_order_cond = array();
 	protected $_group_cond = array();
-	/* !! */ protected $_distinct_cond = false;
+	protected $_distinct_cond = false;
 	
 	/**
 	 * Limit Conditions
@@ -239,10 +239,10 @@ class List {
 		return $this;
  	}
 	
-	/* !! */ public function distinct($field) {
-	/* !! */	 $this->_distinct_cond = "`$field`";
-	/* !! */	 return $this;
-	/* !! */ }
+	public function distinct($field) {
+ 		$this->_distinct_cond = "`$field`";
+ 		return $this;
+ 	}
 	
 	/**
 	 * Order SQL Results
@@ -494,9 +494,21 @@ class List {
 		}
 		
 		$pp = array();
-		while($row = $results->row()) $pp[] = $this->_custom_query ? $row : 'MODEL';
+		list($bundle, $model) = explode('.', $this->_table);
+		while($row = $results->row()) $pp[] = $this->_custom_query ? $row : e::$bundle()->$model($row['id']);
 		$this->_results = $pp;
 		$this->_has_query = true;
+	}
+	
+	/**
+	 * Return Output
+	 *
+	 * @return void
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function all() {
+		if($this->_has_query == false) $this->_run_query();
+		return $this->_results;
 	}
 	
 }

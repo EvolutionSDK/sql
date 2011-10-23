@@ -328,14 +328,14 @@ class Model {
 					$conds = array("\$".$this->_table.'_id' => (string) $this->id);
 					$return = $this->_connection->select($use, $conds);
 					
-					if($plural) return $return->all();
-					else if(!$plural) return $return->row();
+					if($plural) return $return->lists();
+					else if(!$plural) return $return->model();
 				}
 				
 				$return = $this->_connection->select($matched, $conds);
 				
-				if($plural) return $return->all();
-				else if(!$plural) return $return->row();
+				if($plural) return $return->lists();
+				else if(!$plural) return $return->model();
 			break;
 			case 'set':
 			case 'add':

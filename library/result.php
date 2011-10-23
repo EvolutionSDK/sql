@@ -2,6 +2,7 @@
 namespace Evolution\SQL;
 use PDOStatement;
 use PDO;
+use e;
 
 class Result {
 
@@ -77,6 +78,22 @@ class Result {
 		else $grab = PDO::FETCH_ASSOC;
 		
 		return $this->result->fetch($grab);
+	}
+	
+	public function lists() {
+		$query = $this->result->queryString;
+		preg_match('/FROM `?([\w.]+)`?/', $query, $tables);
+		list($bundle, $model) = explode('.', $tables[1]);
+		$list = $model.'_list';
+		return e::$bundle()->$list($row['id']);
+	}
+	
+	public function model() {
+		$row = $this->row();
+		$query = $this->result->queryString;
+		preg_match('/FROM `?([\w.]+)`?/', $query, $tables);
+		list($bundle, $model) = explode('.', $tables[1]);
+		return e::$bundle()->$model($row['id']);
 	}
 	
 	/**
