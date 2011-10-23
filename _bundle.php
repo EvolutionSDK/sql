@@ -64,14 +64,20 @@ class Bundle extends SQLBundle {
 	 * @author David Boskovic
 	 */
 	public function useConnection($slug='default') {
-		$connections = Configure::get('sql.connection');
+		// Check that slug is a string
+		if(!is_string($slug))
+			throw new Exception("Database connection slug must be a string when
+				calling `e::sql(<i>slug</i>)` or `e::sql()->useConnection(<i>slug</i>)`");
 
+		// Load up the database connection from environment
+		$default = e::environment()->requireVar("sql.connection.$slug", 
+			'service://username[:password]@hostname[:port]/database');
+
+		// Try to make the connection
 		try {
-			if(!isset($this->connections[$slug])) $this->addConnection($connections[$slug]);
-			return $this->connections[$slug];
-		}
-		catch(Exception $e) {
-			throw new Exception("No database connection established for $slug.", 0, $e);
+			return $this->addConnection($default, 'default');
+		} catch(ConnectionException $e) {
+			e::environment()->invalidVar("sql.connection.$slug", $e);
 		}
 	}
 	/**

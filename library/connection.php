@@ -1,6 +1,8 @@
 <?php
 
 namespace Evolution\SQL;
+use Exception;
+use PDOException;
 use PDO;
 
 /**
@@ -41,7 +43,11 @@ class Connection {
 	public function __construct($url = false, $slug = false) {
 		$this->slug = $slug;
 		$access = $this->_parse_access_url($url, 'dsn');
-		$this->connection = new PDO($access['dsn'], $access['user'], $access['password']);
+		try {
+			$this->connection = new PDO($access['dsn'], $access['user'], $access['password']);
+		} catch(PDOException $e) {
+			throw new ConnectionException("Could not connect to database `$slug`", 0, $e);
+		}
 	}
 	
 	/**
@@ -111,8 +117,9 @@ class Connection {
 	private function _parse_access_url($url, $return_format = 'dsn') {
 		$driver = substr($url, 0, strpos($url,'://')); $rest = substr($url, strlen($driver)+3);
 		$database = substr($rest, strpos($rest,'/')+1); $rest = substr($rest, 0, -(strlen($database)+1));
-		
-		list($unparsed_access, $unparsed_host) = explode('@', $rest);
+		$rexp = explode('@', $rest);
+		if(count($rexp) < 2) $rexp[] = '';
+		list($unparsed_access, $unparsed_host) = $rexp;
 		$access = explode(':', $unparsed_access);
 		$user = array_shift($access);
 		$password = array_shift($access);
@@ -355,3 +362,6 @@ class Connection {
 	}
 	
 }
+
+// Connection Exception
+class ConnectionException extends Exception {}
