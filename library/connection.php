@@ -273,6 +273,16 @@ class Connection {
 	}
 	
 	/**
+	 * Testing Function Please Remove L8r
+	 */
+	public function book_list() {
+		return new ListObj('sql.book', $this->slug);
+	}
+	public function book($id) {
+		return new Model($this->slug, 'sql.book', $id);
+	}
+	
+	/**
 	 * Convert an array of values to SQL insert values
 	 *
 	 * @param string $array 

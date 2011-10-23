@@ -85,7 +85,7 @@ class Result {
 		preg_match('/FROM `?([\w.]+)`?/', $query, $tables);
 		list($bundle, $model) = explode('.', $tables[1]);
 		$list = $model.'_list';
-		return e::$bundle()->$list($row['id']);
+		return e::$bundle()->$list();
 	}
 	
 	public function model() {
