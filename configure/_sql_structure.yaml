@@ -14,7 +14,20 @@ author:
     name: string
 
 shelf:
+  singular: shelf
+  plural: shelves
   fields:
     category: string
+  manyToMany:
+    - store
   hasMany:
     - book
+    
+store:
+  singular: store
+  plural: stores
+  fields:
+    name: string
+    address: text
+  manyToMany:
+    - shelf

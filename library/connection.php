@@ -91,7 +91,6 @@ class Connection {
 		 * Throw PDOException if an error exists
 		 */
 		$errorInfo = $result->errorInfo();
-		if($errorInfo[2] !== NULL) var_dump($sql);
 		if($errorInfo[2] !== NULL) throw new \PDOException($errorInfo[2]);
 		
 		/**

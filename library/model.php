@@ -319,8 +319,8 @@ class Model {
 				}
 				
 				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
-					$table1 = "\$ $matched $this->_table";
-					$table2 = "\$ $this->_table $matched";
+					$table1 = "\$connect $matched $this->_table";
+					$table2 = "\$connect $this->_table $matched";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
@@ -364,8 +364,8 @@ class Model {
 				}
 				
 				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
-					$table1 = "\$ $matched $this->_table";
-					$table2 = "\$ $this->_table $matched";
+					$table1 = "\$connect $matched $this->_table";
+					$table2 = "\$connect $this->_table $matched";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
@@ -375,7 +375,8 @@ class Model {
 							"\$".$this->_table.'_id' => (string) $this->id,
 							"\$".$matched.'_id' => (string) $id,
 						);
-						$this->_connection->insert($use, $insert);
+						try { $this->_connection->insert($use, $insert); }
+						catch(\PDOException $e) { }
 					}
 					
 					else if(!$plural) {
@@ -383,7 +384,8 @@ class Model {
 							"\$".$this->_table.'_id' => (string) $this->id,
 							"\$".$matched.'_id' => (string) $args[0],
 						);
-						$this->_connection->insert($use, $insert);
+						try { $this->_connection->insert($use, $insert); }
+						catch(\PDOException $e) { }
 					}
 					
 					return true;
@@ -416,8 +418,8 @@ class Model {
 				}
 				
 				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
-					$table1 = "\$ $matched $this->_table";
-					$table2 = "\$ $this->_table $matched";
+					$table1 = "\$connect $matched $this->_table";
+					$table2 = "\$connect $this->_table $matched";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;

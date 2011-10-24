@@ -82,6 +82,7 @@ class Bundle extends SQLBundle {
 			e::environment()->invalidVar("sql.connection.$slug", $e);
 		}
 	}
+	
 	/**
 	 * Create a new mysql server connection.
 	 *
