@@ -283,11 +283,11 @@ class Model {
 			/**
 			 * Try and match the requested models
 			 */
-			if($relations['plural'] == $search && in_array($table, $possible_tables)) {
+			if(isset($relations['plural']) && $relations['plural'] == $search && in_array($table, $possible_tables)) {
 				$plural = true;
 				$found = true;
 			}
-			else if($relations['singular'] == $search && in_array($table, $possible_tables)) {
+			else if(isset($relations['singular']) && $relations['singular'] == $search && in_array($table, $possible_tables)) {
 				$plural = false;
 				$found = true;
 			}
@@ -328,14 +328,14 @@ class Model {
 					$conds = array("\$".$this->_table.'_id' => (string) $this->id);
 					$return = $this->_connection->select($use, $conds);
 					
-					if($plural) return $return->all();
-					else if(!$plural) return $return->row();
+					if($plural) return $return->lists();
+					else if(!$plural) return $return->model();
 				}
 				
 				$return = $this->_connection->select($matched, $conds);
 				
-				if($plural) return $return->all();
-				else if(!$plural) return $return->row();
+				if($plural) return $return->lists();
+				else if(!$plural) return $return->model();
 			break;
 			case 'set':
 			case 'add':

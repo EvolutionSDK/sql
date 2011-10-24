@@ -1,12 +1,13 @@
 <?php
 
 namespace Evolution\SQL;
+use e;
 
 /**
  * @todo Make all paging functions part of the list method
  */
 
-class List {
+class ListObj {
 	
 	/**
 	 * DB Connection
@@ -23,6 +24,8 @@ class List {
 	 */
 	protected $_result_array;
 	protected $_result_model;
+	protected $_has_query;
+	protected $_raw;
 	
 	/**
 	 * Query Conditions
@@ -32,7 +35,8 @@ class List {
 	protected $_query_cond = array();
 	protected $_order_cond = array();
 	protected $_group_cond = array();
-	/* !! */ protected $_distinct_cond = false;
+	protected $_distinct_cond = false;
+	protected $_custom_query;
 	
 	/**
 	 * Limit Conditions
@@ -112,7 +116,7 @@ class List {
 		 */
 		$signal	= strpos($field, ' ') ? substr($field, strpos($field, ' ') + 1) : '=';
 		$field 	= strpos($field, ' ') ? substr($field, 0, strpos($field, ' ')) 	: $field;
-		$value 	= strpos($value, ':') === 0 && ctype_alpha(substr($value, 1)) == true) ? '`'.substr($value, 1).'`' : $value;
+		$value 	= strpos($value, ':') === 0 && ctype_alpha(substr($value, 1) == true) ? '`'.substr($value, 1).'`' : $value;
 		$value 	= is_null($value) || is_numeric($value) || strpos($value, '`') === 0 ? $value : "'$value'";
 		
 		/**
@@ -143,11 +147,11 @@ class List {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function multiple_field_condition($condition, $fields, $verify = false) {
-		if(!is_array($fields)) $fields = explode(' ', $fields)
+		if(!is_array($fields)) $fields = explode(' ', $fields);
 		if(count($fields) == 0) return $this;
 		
 		$query = '';
-		foreach($fields, as $field) {
+		foreach($fields as $field) {
 			if(strtoupper($field) == 'OR') $query .= ' OR ';
 			else if(strtoupper($field) == 'AND') $query .= ' AND ';
 			else $query .= "`$field` $condition";
@@ -239,10 +243,10 @@ class List {
 		return $this;
  	}
 	
-	/* !! */ public function distinct($field) {
-	/* !! */	 $this->_distinct_cond = "`$field`";
-	/* !! */	 return $this;
-	/* !! */ }
+	public function distinct($field) {
+ 		$this->_distinct_cond = "`$field`";
+ 		return $this;
+ 	}
 	
 	/**
 	 * Order SQL Results
@@ -288,7 +292,7 @@ class List {
 		$this->_limit_size = false;
 		$this->_limit = false;
 		$this->_has_query = false;
-		return $this
+		return $this;
 	}
 	
 	/**
@@ -342,7 +346,7 @@ class List {
 	public function paging() {
 		$pages = ceil($this->count('all') / $this->_page_length);
 		return (object) array(
-			'pages' = $page,
+			'pages' => $page,
 			'page' => $this->_on_page,
 			'length' => $this->_page_length,
 			'items' => $this->count('all')
@@ -494,9 +498,21 @@ class List {
 		}
 		
 		$pp = array();
-		while($row = $results->row()) $pp[] = $this->_custom_query ? $row : 'MODEL';
+		list($bundle, $model) = explode('.', $this->_table);
+		while($row = $results->row()) $pp[] = $this->_custom_query ? $row : e::$bundle()->$model($row['id']);
 		$this->_results = $pp;
 		$this->_has_query = true;
+	}
+	
+	/**
+	 * Return Output
+	 *
+	 * @return void
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function all() {
+		if($this->_has_query == false) $this->_run_query();
+		return $this->_results;
 	}
 	
 }

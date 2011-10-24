@@ -77,7 +77,7 @@ class Bundle extends SQLBundle {
 
 		// Try to make the connection
 		try {
-			return $this->addConnection($default, 'default');
+			return $this->addConnection($default, $slug);
 		} catch(ConnectionException $e) {
 			e::environment()->invalidVar("sql.connection.$slug", $e);
 		}
