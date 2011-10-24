@@ -6,7 +6,7 @@ namespace Evolution\SQL;
  * @todo Make all paging functions part of the list method
  */
 
-class List {
+class ListObj {
 	
 	/**
 	 * DB Connection
