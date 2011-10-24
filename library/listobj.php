@@ -137,6 +137,24 @@ class ListObj {
 	}
 	
 	/**
+	 * Many to many Left Join
+	 *
+	 * @param string $use 
+	 * @param string $join 
+	 * @param string $id 
+	 * @return void
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function m2m($use, $join, $id) {
+		$ljoin = "LEFT JOIN `$use` ON `$this->_table`.`id` = `$use`.`\$".$this->_table."_id`";
+		$this->_tables_select .= ' '.$ljoin; 
+		
+		$this->condition("`$use`.`\$".$join."_id` =", $id);
+		
+		return $this;
+	}
+	
+	/**
 	 * Process Multiple Field Conditions
 	 * Use: Comparing multiple fields to a single condition
 	 *

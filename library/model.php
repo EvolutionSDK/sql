@@ -324,12 +324,16 @@ class Model {
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
+
+					if($plural) {
+						$return = new ListObj($matched, $this->_connection->slug);
+						return $return->m2m($use, $this->_table, $this->id)->all();
+					}
 					
-					$conds = array("\$".$this->_table.'_id' => (string) $this->id);
-					$return = $this->_connection->select($use, $conds);
+					else if(!$plural) {
+						// Morning
+					}
 					
-					if($plural) return $return->lists();
-					else if(!$plural) return $return->model();
 				}
 				
 				$return = $this->_connection->select($matched, $conds);

@@ -287,6 +287,9 @@ class Connection {
 	public function book($id) {
 		return new Model($this->slug, 'sql.book', $id);
 	}
+	public function shelf($id) {
+		return new Model($this->slug, 'sql.shelf', $id);
+	}
 	
 	/**
 	 * Convert an array of values to SQL insert values

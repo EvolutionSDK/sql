@@ -82,7 +82,8 @@ class Result {
 	
 	public function lists() {
 		$query = $this->result->queryString;
-		preg_match('/FROM `?([\w.]+)`?/', $query, $tables);
+		preg_match('/FROM `?([\w.$ ]+)`?/', $query, $tables);
+		var_dump($tables);
 		list($bundle, $model) = explode('.', $tables[1]);
 		$list = $model.'_list';
 		return e::$bundle()->$list();
