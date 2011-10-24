@@ -23,8 +23,7 @@ class Bundle extends SQLBundle {
 		// establish the default mysql connection or throw an error
 		// run service binding for connection established
 		
-		Service::bind('Evolution\SQL\Bundle::build_architecture', 'bundles:loaded');
-		Configure::add('sql.connection', 'default', 'mysql://root@localhost/test');
+		Service::bind('Evolution\SQL\Bundle::build_architecture', 'site:ready');
 	}
 	public function __bundle_response($method = false) {
 		//if(!isset($this->connections['default']))
@@ -64,6 +63,9 @@ class Bundle extends SQLBundle {
 	 * @author David Boskovic
 	 */
 	public function useConnection($slug='default') {
+		if(isset($this->connections[$slug]) && $this->connections[$slug] instanceof Connection)
+			return $this->connections[$slug];
+		
 		// Check that slug is a string
 		if(!is_string($slug))
 			throw new Exception("Database connection slug must be a string when
@@ -90,6 +92,7 @@ class Bundle extends SQLBundle {
 	 */
 	public function addConnection($info, $slug = 'default') {
 		$this->connections[$slug] = new Connection($info, $slug);
+		return $this->connections[$slug];
 	}
 	
 	/**
