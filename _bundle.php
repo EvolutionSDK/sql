@@ -63,6 +63,9 @@ class Bundle extends SQLBundle {
 	 * @author David Boskovic
 	 */
 	public function useConnection($slug='default') {
+		if(isset($this->connections[$slug]) && $this->connections[$slug] instanceof Connection)
+			return $this->connections[$slug];
+		
 		// Check that slug is a string
 		if(!is_string($slug))
 			throw new Exception("Database connection slug must be a string when
@@ -74,7 +77,7 @@ class Bundle extends SQLBundle {
 
 		// Try to make the connection
 		try {
-			return $this->addConnection($default, 'default');
+			return $this->addConnection($default, $slug);
 		} catch(ConnectionException $e) {
 			e::environment()->invalidVar("sql.connection.$slug", $e);
 		}
@@ -89,6 +92,7 @@ class Bundle extends SQLBundle {
 	 */
 	public function addConnection($info, $slug = 'default') {
 		$this->connections[$slug] = new Connection($info, $slug);
+		return $this->connections[$slug];
 	}
 	
 	/**
