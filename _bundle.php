@@ -20,8 +20,7 @@ class Bundle {
 	public function __construct($dir) {
 		// establish the default mysql connection or throw an error
 		// run service binding for connection established
-		
-		Service::bind('Evolution\SQL\Bundle::build_architecture', 'site:ready');
+		Service::bind('Evolution\SQL\Bundle::build_architecture', 'router:ready');
 	}
 	public function __bundle_response($method = false) {
 		//if(!isset($this->connections['default']))

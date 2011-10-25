@@ -11,7 +11,6 @@ class SQLBundle {
 	private static $local_structure = array();
 	
 	public function __construct($dir) {
-		
 		$bundle = basename($dir);
 		$this->bundle = $bundle;
 		$sql = e::spyc()->load($dir.'/configure/_sql_structure.yaml', true);
@@ -20,7 +19,7 @@ class SQLBundle {
 		 * If a relation is on the same table prefix it with its bundle name
 		 */
 		foreach($sql as $table=>$relations) {
-			if(!is_array($relations)) throw new \Exception("Invalid YAML Config Error-ing in $dir/configure/_sql_structure.yaml");
+			if(!is_array($relations)) throw new \Exception("Invalid YAML Config Error-ing in table $table in file $dir/configure/_sql_structure.yaml");
 			foreach($relations as $kind=>$values) {
 				if($kind == 'fields' || $kind == 'singular' || $kind == 'plural') continue;
 				
