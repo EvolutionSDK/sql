@@ -70,7 +70,7 @@ class SQLBundle {
 			unset($relations, $table);
 		}
 		
-		if(!isset($relations) && !isset($table)) throw new \Exception("There was no table match when calling `$func(...)` on the `e::$this->bundle()` bundle.");
+		if(!isset($relations) && !isset($table)) throw new NoMatchException("There was no table match when calling `$func(...)` on the `e::$this->bundle()` bundle.");
 		
 		switch($method) {
 			case 'get':
@@ -93,11 +93,11 @@ class SQLBundle {
 				catch(\Evolution\Kernel\ClassNotFoundException $e) 
 					{ return new Model($this->database, "$this->bundle.$table", false); }
 			default:
-				throw new \Exception("`$method` is not a valid request as `$func(...)` on the `e::$this->bundle()` bundle. valid requests are `new` and `get`.");
+				throw new InvalidRequestException("`$method` is not a valid request as `$func(...)` on the `e::$this->bundle()` bundle. valid requests are `new` and `get`.");
 			break;
 		}
 		
-		throw new \Exception("No method was routed when calling `$func(...)` on the `e::$this->bundle()` bundle.");
+		throw new NoMatchException("No method was routed when calling `$func(...)` on the `e::$this->bundle()` bundle.");
 		
 	}
 	

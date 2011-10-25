@@ -9,6 +9,12 @@ use Exception;
 use e;
 
 /**
+ * SQL Exceptions
+ */
+class NoMatchException extends Exception { }
+class InvalidRequestException extends Exception { }
+
+/**
  * Router Bundle
  */
 class Bundle {
