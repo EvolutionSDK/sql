@@ -28,7 +28,6 @@ class Model {
 	 * Stored Data
 	 */
 	private $data;
-	private $old_data;
 
 	/**
 	 * Has the model bee modified
@@ -67,16 +66,16 @@ class Model {
 		 * If an ID is provided load the row, and store it to the cache
 		 */
 		if($id) {
-			if(!is_array($id) && ($isset = isset(self::$_cache[$table][$id]))) {
+			if(!is_array($id) && isset(self::$_cache[$table][$id])) {
 				$this->data =& self::$_cache[$table][$id];
 			}
 			
-			else if(is_numeric($id) && !isset($isset)) {
+			else if(is_numeric($id)) {
 				self::$_cache[$table][$id] = $this->_connection->select_by_id($table, $id)->row();
 				$this->data =& self::$_cache[$table][$id];
 			}
 		
-			else if(is_array($id) && !isset($isset)) {
+			else if(is_array($id)) {
 				self::$_cache[$table][$id['id']] = $id;
 				$this->data =& self::$_cache[$table][$id['id']];
 			}
@@ -102,8 +101,6 @@ class Model {
 		 */
 		self::$_this_memory = (memory_get_usage(true) - $init_mem);
 		self::$_memory += self::$_this_memory;
-		
-		$this->old_data = $this->data;
 	}
 
 	/**
