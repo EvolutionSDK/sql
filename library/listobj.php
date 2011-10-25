@@ -7,7 +7,7 @@ use e;
  * @todo Make all paging functions part of the list method
  */
 
-class ListObj implements \Iterator {
+class ListObj implements \Iterator, \Countable {
 	
 	/**
 	 * DB Connection
@@ -52,8 +52,7 @@ class ListObj implements \Iterator {
 	/**
 	 * Count of all items int the result
 	 */
-	protected $_count_cur = 0;
-	protected $_count_all = 0;
+	protected $_count = 0;
 	protected $_sum = array();
 	
 	protected $_tb_singular;
