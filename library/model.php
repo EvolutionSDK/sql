@@ -332,20 +332,21 @@ class Model {
 				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
 					$table1 = "\$connect $matched $this->_table";
 					$table2 = "\$connect $this->_table $matched";
+					$table3 = "\$connect $this->_table";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
+					else if($this->_exists($table3)) { $use = $table3; $same = true; }
 
 					if($plural) {
 						$return = new ListObj($matched, $this->_connection->slug);
-						return $return->m2m($use, $this->_table, $this->id)->all();
+						return $return->m2m($use, (isset($same) ? 1 : $this->_table), $this->id);
 					}
 					
 					else if(!$plural) {
 						$return = new ListObj($matched, $this->_connection->slug);
-						$return = $return->m2m($use, $this->_table, $this->id)->all();
-						if(count($return) > 1) return $return;
-						else return $return[0];
+						$return = $return->m2m($use, $this->_table, $this->id);
+						return $return;
 					}
 					
 				}
@@ -391,24 +392,38 @@ class Model {
 				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
 					$table1 = "\$connect $matched $this->_table";
 					$table2 = "\$connect $this->_table $matched";
+					$table3 = "\$connect $this->_table";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
+					else if($this->_exists($table3)) { $use = $table3; $same = true; }
 					
 					if($plural) foreach($args as $id) {
-						$insert = array(
+						if(isset($same)) $insert = array(
+							"\$id_a" => (string) $this->id,
+							"\$id_b" => (string) $id,
+						);
+						
+						else $insert = array(
 							"\$".$this->_table.'_id' => (string) $this->id,
 							"\$".$matched.'_id' => (string) $id,
 						);
+						
 						try { $this->_connection->insert($use, $insert); }
 						catch(\PDOException $e) { }
 					}
 					
 					else if(!$plural) {
-						$insert = array(
+						if(isset($same)) $insert = array(
+							"\$id_a" => (string) $this->id,
+							"\$id_b" => (string) $args[0],
+						);
+						
+						else $insert = array(
 							"\$".$this->_table.'_id' => (string) $this->id,
 							"\$".$matched.'_id' => (string) $args[0],
 						);
+						
 						try { $this->_connection->insert($use, $insert); }
 						catch(\PDOException $e) { }
 					}

@@ -328,6 +328,46 @@ class Architect {
 	}
 	
 	public function _connection_table($table_a, $table_b) {
+		/**
+		 * If the two connections are going to be on the same table
+		 */
+		if($table_a == $table_b) {
+			$fields['$id_a'] = array(
+				'Type' => 'number',
+				'Null' => 'NO',
+				'Key' => 'PRI',
+				'Default' => NULL,
+				'Extra' => ''
+			);
+
+			$fields['$id_b'] = array(
+				'Type' => 'number',
+				'Null' => 'NO',
+				'Key' => 'PRI',
+				'Default' => NULL,
+				'Extra' => ''
+			);
+
+			$fields['$updated_timestamp'] = array(
+				'Type' => 'timestamp',
+				'Null' => 'YES',
+				'Key' => '',
+				'Default' => NULL,
+				'Extra' => 'on update CURRENT_TIMESTAMP'
+			);
+			
+			$table = "\$connect $table_a";
+			
+			if($this->_exists($table)) return false;
+			
+			$this->_create($table ,$fields);
+			
+			return;
+		}
+		
+		/**
+		 * Since we are obviously connecting two different tables go here
+		 */
 		$fields['$'.$table_a.'_id'] = array(
 			'Type' => 'number',
 			'Null' => 'NO',

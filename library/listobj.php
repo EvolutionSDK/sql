@@ -154,8 +154,8 @@ class ListObj implements \Iterator {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function join($type = 'LEFT', $use) {
-		$this->_join = "$type JOIN `$use` ON `$this->_table`.`id` = `$use`.`\$".$this->_table."_id`";
+	public function join($type = 'LEFT', $use, $cond) {
+		$this->_join = " $type JOIN `$use` ON $cond";
 		
 		return $this;
 	}
@@ -170,8 +170,13 @@ class ListObj implements \Iterator {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function m2m($use, $join, $id) {
-		$this->join('LEFT', $use);
-		$this->condition("`$use`.`\$".$join."_id` =", $id);
+		
+		if(is_numeric($join)) $cond = "`$this->_table`.`id` = `$use`.`\$id_b`";
+		else $cond = "`$this->_table`.`id` = `$use`.`\$".$this->_table."_id`";
+		
+		$this->join('LEFT', $use, $cond);
+		if(is_numeric($join)) $this->condition("`$use`.`\$id_a` =", $id);
+		else $this->condition("`$use`.`\$".$join."_id` =", $id);
 		
 		return $this;
 	}
@@ -591,7 +596,6 @@ class ListObj implements \Iterator {
 	}
 
 	public function key() {
-		var_dump($this->_results);
 		return $this->_results[$this->position]->id;
 	}
 
