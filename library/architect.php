@@ -28,7 +28,8 @@ class Architect {
 		'date' => 'datetime',
 		'bool' => 'tinyint(1)',
 		'number' => 'int(11)',
-		'money' => 'decimal(10,2)'
+		'money' => 'decimal(10,2)',
+		'decimal' => 'decimal(10,3)'
 	);
 	
 	/**
