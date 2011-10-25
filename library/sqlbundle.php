@@ -76,22 +76,37 @@ class SQLBundle {
 			case 'get':
 				if(!$plural && isset($args[0])) {
 					$class = "\\Evolution\\$this->bundle\\Models\\$table";
+					$class2 = "\\Bundles\\$this->bundle\\Models\\$table";
 					try { return new $class($this->database, "$this->bundle.$table", $args[0]); }
-					catch(\Evolution\Kernel\ClassNotFoundException $e) 
-						{ return new Model($this->database, "$this->bundle.$table", $args[0]); }
+					catch(\Evolution\Kernel\ClassNotFoundException $e) {
+							
+							try { return new $class2($this->database, "$this->bundle.$table", $args[0]); }
+							catch(\Evolution\Kernel\ClassNotFoundException $e) 
+								{ return new Model($this->database, "$this->bundle.$table", $args[0]); }		
+					}
 				}
 				else if($plural) {
 					$class = "\\Evolution\\$this->bundle\\Lists\\$table";
+					$class2 = "\\Bundles\\$this->bundle\\Lists\\$table";
 					try { return new $class("$this->bundle.$table", $this->database); }
-					catch(\Evolution\Kernel\ClassNotFoundException $e) 
-						{ return new ListObj("$this->bundle.$table", $this->database); }
+					catch(\Evolution\Kernel\ClassNotFoundException $e) {
+						
+						try { return new $class2("$this->bundle.$table", $this->database); }
+						catch(\Evolution\Kernel\ClassNotFoundException $e) 
+							{ return new ListObj("$this->bundle.$table", $this->database); }
+					}
 				}
 			break;
 			case 'new':
 				$class = "\\Evolution\\$this->bundle\\Models\\$table";
+				$class2 = "\\Bundles\\$this->bundle\\Models\\$table";
 				try { return new $class($this->database, "$this->bundle.$table", false); }
-				catch(\Evolution\Kernel\ClassNotFoundException $e) 
-					{ return new Model($this->database, "$this->bundle.$table", false); }
+				catch(\Evolution\Kernel\ClassNotFoundException $e) {
+					
+					try { return new $class2($this->database, "$this->bundle.$table", false); }
+					catch(\Evolution\Kernel\ClassNotFoundException $e) 
+						{ return new Model($this->database, "$this->bundle.$table", false); }
+				}
 			default:
 				throw new InvalidRequestException("`$method` is not a valid request as `$func(...)` on the `e::$this->bundle()` bundle. valid requests are `new` and `get`.");
 			break;
