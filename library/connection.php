@@ -81,13 +81,13 @@ class Connection {
 		 * Start the timer
 		 */
 		$time = microtime(true);
-		
+				
 		/**
 		 * Run Query
 		 */
 		$result = $this->connection->prepare($sql);
 		$result->execute();
-		
+				
 		/**
 		 * Throw PDOException if an error exists
 		 */

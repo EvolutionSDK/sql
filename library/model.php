@@ -28,6 +28,7 @@ class Model {
 	 * Stored Data
 	 */
 	private $data;
+	private $old_data;
 
 	/**
 	 * Has the model bee modified
@@ -95,17 +96,14 @@ class Model {
 		 * If an id is in the model its not a new model
 		 */
 		if($this->id) $this->_new = false;
-		
-		/**
-		 * Relationships
-		 */
-		
 
 		/**
 		 * Recalcuate the used memory and store it
 		 */
 		self::$_this_memory = (memory_get_usage(true) - $init_mem);
 		self::$_memory += self::$_this_memory;
+		
+		$this->old_data = $this->data;
 	}
 
 	/**
@@ -155,7 +153,7 @@ class Model {
 		if($field == 'id'&&!$this->_set_id) return;
 
 		$init_mem = memory_get_usage(true);
-		$this->_modified = TRUE;
+		$this->_modified[$field] = TRUE;
 
 		$this->data[$field] = $nval;
 
@@ -211,7 +209,7 @@ class Model {
 		 */
 		$save = array();
 		foreach($this->data as $key=>$val) {
-			if($key == 'id'&&!$this->_set_id) continue;
+			if(($key == 'id' && !$this->_set_id) || !isset($this->_modified[$key])) continue;
 			$save[$key] = $val;
 		}
 
@@ -361,7 +359,7 @@ class Model {
 					if(empty($row)) return false;
 					
 					list($bundle, $model) = explode('.', $matched);
-					return e::$bundle()->$model($row);
+					return e::$bundle()->{"get".ucfirst($search)}($row);
 				}
 			break;
 			case 'link':
