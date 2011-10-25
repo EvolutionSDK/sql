@@ -192,8 +192,6 @@ class Model {
 			if($key == 'id' || !isset($this->_modified[$key])) continue;
 			$save[$key] = $val;
 		}
-		
-		//var_dump($save);
 
 		/**
 		 * Make the file as modified and then update/insert the values
@@ -366,8 +364,6 @@ class Model {
 					$update =  array("\$".$matched.'_id' => (string) $args[0]);
 					$where = "WHERE `id` = '".$this->id."'";
 					$this->_connection->update($this->_table, $update, $where);
-					
-					var_dump($search);
 					
 					return true;
 				}
