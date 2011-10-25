@@ -11,15 +11,13 @@ use e;
 /**
  * Router Bundle
  */
-class Bundle extends SQLBundle {
+class Bundle {
 	
 	public static $db_structure;
 	
 	private $connections = array();
 	
-	
 	public function __construct($dir) {
-		parent::__construct($dir);
 		// establish the default mysql connection or throw an error
 		// run service binding for connection established
 		
@@ -103,6 +101,7 @@ class Bundle extends SQLBundle {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public static function build_architecture() {
+		if(empty(self::$db_structure)) return false;
 		
 		foreach(self::$db_structure as $table=>$config) {
 			/**

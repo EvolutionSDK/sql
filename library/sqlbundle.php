@@ -5,9 +5,13 @@ use e;
 
 class SQLBundle {
 	
+	public $bundle;
+	public $database = 'default';
+	
 	public function __construct($dir) {
 		
 		$bundle = basename($dir);
+		$this->bundle = $bundle;
 		$sql = e::spyc()->load($dir.'/configure/_sql_structure.yaml', true);
 		
 		/**
@@ -33,6 +37,25 @@ class SQLBundle {
 		 */
 		foreach($sql as $table=>$val) Bundle::$db_structure[$bundle.'.'.$table] = $val;
 		
+	}
+	
+	/**
+	 * Return Models/List If no Extended model/list was declared
+	 *
+	 * @param string $func 
+	 * @param string $args 
+	 * @return void
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function __call($func, $args) {
+		$func = strtolower($func);
+		if(substr($func, -5) == '_list') {
+			$func = substr($func, 0, -5);
+			$return = new ListObj("$this->bundle.$func", $this->database);
+			return $return->all();
+		}
+		
+		return new Model($this->database, "$this->bundle.$func", (isset($args[0]) ? $args[0] : false));
 	}
 	
 }

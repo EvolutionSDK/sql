@@ -66,19 +66,24 @@ class Model {
 		 * If an ID is provided load the row, and store it to the cache
 		 */
 		if($id) {
-			if(isset(self::$_cache[$table][$id])) {
+			if($isset = isset(self::$_cache[$table][$id])) {
 				$this->data =& self::$_cache[$table][$id];
 			}
 			
-			else if(is_numeric($id)) {
+			else if(is_numeric($id) && !$isset) {
 				self::$_cache[$table][$id] = $this->_connection->select_by_id($table, $id)->row();
 				$this->data =& self::$_cache[$table][$id];
 			}
 		
-			else if(is_array($id)) {
+			else if(is_array($id) && !$isset) {
 				self::$_cache[$table][$id['id']] = $id;
 				$this->data =& self::$_cache[$table][$id['id']];
 			}
+			
+			/**
+			 * If no data was loaded assume that false was passed
+			 */
+			if($this->data == false) $this->data = $this->_connection->get_fields($table, true);
 		}
 
 		/**

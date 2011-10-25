@@ -4,6 +4,7 @@ namespace Evolution\SQL;
 use Exception;
 use PDOException;
 use PDO;
+use e;
 
 /**
  * Establish an SQL session with the database server.
@@ -275,20 +276,8 @@ class Connection {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function model($table, $id = false, $set_id = false) {
-		return new Model($this->slug, $table, $id, $set_id);
-	}
-	
-	/**
-	 * Testing Function Please Remove L8r
-	 */
-	public function book_list() {
-		return new ListObj('sql.book', $this->slug);
-	}
-	public function book($id) {
-		return new Model($this->slug, 'sql.book', $id);
-	}
-	public function shelf($id) {
-		return new Model($this->slug, 'sql.shelf', $id);
+		list($bundle, $table) = explode('.', $table);
+		return e::$bundle()->$table($id);
 	}
 	
 	/**
