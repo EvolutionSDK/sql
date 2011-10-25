@@ -363,8 +363,7 @@ class Model {
 					return e::$bundle()->$model($row);
 				}
 			break;
-			case 'set':
-			case 'add':
+			case 'link':
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args as $id) {
 						$update =  array("\$".$this->_table.'_id' => (string) $this->id);
@@ -417,8 +416,7 @@ class Model {
 					return true;
 				}				
 			break;
-			case 'unset':
-			case 'remove':
+			case 'unlink':
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args as $id) {
 						$update =  array("\$".$this->_table.'_id' => (string) 0);

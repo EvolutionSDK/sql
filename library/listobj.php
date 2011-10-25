@@ -7,7 +7,7 @@ use e;
  * @todo Make all paging functions part of the list method
  */
 
-class ListObj {
+class ListObj implements \Iterator {
 	
 	/**
 	 * DB Connection
@@ -24,7 +24,9 @@ class ListObj {
 	 */
 	protected $_result_array;
 	protected $_result_model;
-	protected $_has_query;
+	protected $_results;
+	protected $position = 0;
+	protected $_has_query = false;
 	protected $_raw;
 	
 	/**
@@ -54,6 +56,9 @@ class ListObj {
 	protected $_count_all = 0;
 	protected $_sum = array();
 	
+	protected $_tb_singular;
+	protected $_tb_plural;
+	
 	/**
 	 * List constructor
 	 *
@@ -63,6 +68,10 @@ class ListObj {
 	public function __construct($table = false, $connection = false) {
 		if($table) $this->_table = $table;
 		if($connection) $this->_connection = $connection;
+		
+		$get_table = Bundle::$db_structure[$this->_table];
+		$this->_tb_singular = $get_table['singular'];
+		$this->_tb_plural = $get_table['plural'];
 		
 		/**
 		 * Add default table to tables select
@@ -547,6 +556,7 @@ class ListObj {
 		
 		$pp = array();
 		list($bundle, $model) = explode('.', $this->_table);
+		$model = "get".ucwords($this->_tb_singular);
 		while($row = $results->row()) $pp[] = $this->_custom_query ? $row : e::$bundle()->$model($row['id']);
 		$this->_results = $pp;
 		$this->_has_query = true;
@@ -562,5 +572,39 @@ class ListObj {
 		if($this->_has_query == false) $this->_run_query();
 		return $this->_results;
 	}
+	
+	/**
+	 * BEGIN ITERATOR METHODS ----------------------------------------------------------------
+	 */
+	
+	public function rewind() {
+		if($this->_has_query == false) $this->_run_query();
+		$this->position = 0;
+	}
+	public function keys() {
+		if($this->_has_query == false) $this->_run_query();
+		return array_keys($this->_results[$this->position]);
+	}
+
+	public function current() {
+		return $this->_results[$this->position];
+	}
+
+	public function key() {
+		var_dump($this->_results);
+		return $this->_results[$this->position]->id;
+	}
+
+	public function next() {
+		++$this->position;
+	}
+
+	public function valid() {
+		return isset($this->_results[$this->position]);
+	}
+
+	/**
+	 * END ITERATOR METHODS ----------------------------------------------------------------
+	 */
 	
 }

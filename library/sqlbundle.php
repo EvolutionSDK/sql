@@ -8,6 +8,8 @@ class SQLBundle {
 	public $bundle;
 	public $database = 'default';
 	
+	private static $local_structure = array();
+	
 	public function __construct($dir) {
 		
 		$bundle = basename($dir);
@@ -36,6 +38,7 @@ class SQLBundle {
 		 * Save the DB structure
 		 */
 		foreach($sql as $table=>$val) Bundle::$db_structure[$bundle.'.'.$table] = $val;
+		foreach($sql as $table=>$val) self::$local_structure[$table] = $val;
 		
 	}
 	
@@ -48,14 +51,41 @@ class SQLBundle {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __call($func, $args) {
-		$func = strtolower($func);
-		if(substr($func, -5) == '_list') {
-			$func = substr($func, 0, -5);
-			$return = new ListObj("$this->bundle.$func", $this->database);
-			return $return->all();
+		$search = preg_split('/([A-Z])/', $func, 2, PREG_SPLIT_DELIM_CAPTURE);
+		$method = array_shift($search);
+		$search = strtolower(implode('', $search));
+		
+		if(empty(self::$local_structure)) return false;
+		
+		foreach(self::$local_structure as $table=>$relations) {
+			if(isset($relations['singular']) && $relations['singular'] == $search) {
+				$plural = false;
+				break;
+			}
+			else if(isset($relations['plural']) && $relations['plural'] == $search) {
+				$plural = true;
+				break;
+			}
+			
+			unset($relations, $table);
 		}
 		
-		return new Model($this->database, "$this->bundle.$func", (isset($args[0]) ? $args[0] : false));
+		if(!isset($relations) && !isset($table)) return false;
+		
+		switch($method) {
+			case 'get':
+				if(!$plural && isset($args[0])) return new Model($this->database, "$this->bundle.$table", $args[0]);
+				else if($plural) return new ListObj("$this->bundle.$table", $this->database);
+			break;
+			case 'new':
+				if(!$plural) return new Model($this->database, "$this->bundle.$table", false);
+			default:
+				return false;
+			break;
+		}
+		
+		return false;
+		
 	}
 	
 }
