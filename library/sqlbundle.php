@@ -74,11 +74,24 @@ class SQLBundle {
 		
 		switch($method) {
 			case 'get':
-				if(!$plural && isset($args[0])) return new Model($this->database, "$this->bundle.$table", $args[0]);
-				else if($plural) return new ListObj("$this->bundle.$table", $this->database);
+				if(!$plural && isset($args[0])) {
+					$class = "\\Evolution\\$this->bundle\\Models\\$table";
+					try { return new $class($this->database, "$this->bundle.$table", $args[0]); }
+					catch(\Evolution\Kernel\ClassNotFoundException $e) 
+						{ return new Model($this->database, "$this->bundle.$table", $args[0]); }
+				}
+				else if($plural) {
+					$class = "\\Evolution\\$this->bundle\\Lists\\$table";
+					try { return new $class("$this->bundle.$table", $this->database); }
+					catch(\Evolution\Kernel\ClassNotFoundException $e) 
+						{ return new ListObj("$this->bundle.$table", $this->database); }
+				}
 			break;
 			case 'new':
-				if(!$plural) return new Model($this->database, "$this->bundle.$table", false);
+				$class = "\\Evolution\\$this->bundle\\Models\\$table";
+				try { return new $class($this->database, "$this->bundle.$table", false); }
+				catch(\Evolution\Kernel\ClassNotFoundException $e) 
+					{ return new Model($this->database, "$this->bundle.$table", false); }
 			default:
 				return false;
 			break;
