@@ -295,7 +295,7 @@ class Model {
 		/**
 		 * If no results stop everything
 		 */
-		if(isset($found) && !$found) return false;
+		if(isset($found) && !$found) throw new \Exception("`$search` could not be be mapped to a table when calling `$func(...)` on the `$this->_table` model.");
 		
 		switch($method) {
 			case 'get':
@@ -336,7 +336,7 @@ class Model {
 				
 				else if(!$plural) {
 					$row = $this->_connection->select($matched, $conds)->row();
-					if(empty($row)) return false;
+					if(empty($row)) throw new \Exception("No results were returned when calling `$func(...)` on the `$this->_table` model.");
 					
 					list($bundle, $model) = explode('.', $matched);
 					return e::$bundle()->{"get".ucfirst($search)}($row);
@@ -452,6 +452,9 @@ class Model {
 
 					return true;
 				}				
+			break;
+			default:
+				throw new \Exception("`$method` is not a valid request as `$func(...)` on the `$this->_table` model. valid requests are `get`, `link`, and `unlink`");
 			break;
 		}
 		
