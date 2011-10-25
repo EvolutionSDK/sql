@@ -139,6 +139,7 @@ class Bundle {
 			e::sql()->query("DROP TABLE `$table`");
 		}
 		
+		Service::run('sql:ready');
 	}
 
 }
