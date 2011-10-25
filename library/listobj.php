@@ -32,6 +32,7 @@ class ListObj {
 	 */
 	protected $_fields_select = '*';
 	protected $_tables_select;
+	protected $_join = false;
 	protected $_query_cond = array();
 	protected $_order_cond = array();
 	protected $_group_cond = array();
@@ -137,6 +138,20 @@ class ListObj {
 	}
 	
 	/**
+	 * Add a Left/Right Join
+	 *
+	 * @param string $type 
+	 * @param string $use 
+	 * @return void
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function join($type = 'LEFT', $use) {
+		$this->_join = "$type JOIN `$use` ON `$this->_table`.`id` = `$use`.`\$".$this->_table."_id`";
+		
+		return $this;
+	}
+	
+	/**
 	 * Many to many Left Join
 	 *
 	 * @param string $use 
@@ -146,9 +161,7 @@ class ListObj {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function m2m($use, $join, $id) {
-		$ljoin = "LEFT JOIN `$use` ON `$this->_table`.`id` = `$use`.`\$".$this->_table."_id`";
-		$this->_tables_select .= ' '.$ljoin; 
-		
+		$this->join('LEFT', $use);
 		$this->condition("`$use`.`\$".$join."_id` =", $id);
 		
 		return $this;
@@ -190,6 +203,23 @@ class ListObj {
 	 */
 	public function manual_condition($condition) {
 		$this->_query_cond[] = $condition;
+		return $this;
+	}
+	
+	/**
+	 * Process an array of conditions
+	 *
+	 * @param string $array 
+	 * @return void
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function condition_array($array) {
+		if(!is_array($array)) return $this;
+		
+		foreach($array as $col=>$val) {
+			$this->condition($col, $val);
+		}
+		
 		return $this;
 	}
 	
@@ -444,7 +474,7 @@ class ListObj {
 		if(!$count && $this->_limit) $cond .= 'LIMIT '.$this->_limit.' ';
 		
 		/**
-		 * Grab the fields to select
+		 * Grab the fields to select and add join if one exists
 		 */
 		$fields_select = $this->_fields_select;
 		
@@ -470,7 +500,7 @@ class ListObj {
 		/**
 		 * Prepare the query to run
 		 */
-		$query = $this->_custom_query ? ($count ? $this->_custom_count_query : $this->_custom_query) : "SELECT $fields_select FROM $this->_tables_select $cond";
+		$query = $this->_custom_query ? ($count ? $this->_custom_count_query : $this->_custom_query) : "SELECT $fields_select FROM $this->_tables_select".($this->_join ? $this->_join : '')." $cond";
 		
 		/**
 		 * Return the query that will be run for debug purposes

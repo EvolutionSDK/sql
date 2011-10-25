@@ -66,13 +66,19 @@ class Model {
 		 * If an ID is provided load the row, and store it to the cache
 		 */
 		if($id) {
-			if(!isset(self::$_cache[$table][$id])) {
-				if(!is_array($id)) $conds = array('id' => (string) $id);
-				else $conds = $id;
-				self::$_cache[$table][$id] = $this->_connection->select($table, $conds)->row();
+			if(isset(self::$_cache[$table][$id])) {
+				$this->data =& self::$_cache[$table][$id];
 			}
-
-			$this->data =& self::$_cache[$table][$id];
+			
+			else if(is_numeric($id)) {
+				self::$_cache[$table][$id] = $this->_connection->select_by_id($table, $id)->row();
+				$this->data =& self::$_cache[$table][$id];
+			}
+		
+			else if(is_array($id)) {
+				self::$_cache[$table][$id['id']] = $id;
+				$this->data =& self::$_cache[$table][$id['id']];
+			}
 		}
 
 		/**
@@ -331,15 +337,26 @@ class Model {
 					}
 					
 					else if(!$plural) {
-						// Morning
+						$return = new ListObj($matched, $this->_connection->slug);
+						$return = $return->m2m($use, $this->_table, $this->id)->all();
+						if(count($return) > 1) return $return;
+						else return $return[0];
 					}
 					
 				}
 				
-				$return = $this->_connection->select($matched, $conds);
+				if($plural) {
+					$return = new ListObj($matched, $this->_connection->slug);
+					return $return->condition_array($conds)->all();
+				}
 				
-				if($plural) return $return->lists();
-				else if(!$plural) return $return->model();
+				else if(!$plural) {
+					$row = $this->_connection->select($matched, $conds)->row();
+					if(empty($row)) return false;
+					
+					list($bundle, $model) = explode('.', $matched);
+					return e::$bundle()->$model($row);
+				}
 			break;
 			case 'set':
 			case 'add':
