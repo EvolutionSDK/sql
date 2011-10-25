@@ -20,6 +20,7 @@ class SQLBundle {
 		 * If a relation is on the same table prefix it with its bundle name
 		 */
 		foreach($sql as $table=>$relations) {
+			if(!is_array($relations)) throw new \Exception("Invalid YAML Config Error-ing in $bundle.$table");
 			foreach($relations as $kind=>$values) {
 				if($kind == 'fields' || $kind == 'singular' || $kind == 'plural') continue;
 				

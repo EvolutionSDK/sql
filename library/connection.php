@@ -301,9 +301,9 @@ class Connection {
 	 *
 	 * @param string $str 
 	 * @return void
-	 * @author Kelly Lauren Summer Becker
 	 */
 	private function _string_escape($str) { 
+		if(is_numeric($str)) return $str;
 	   $len=strlen($str); 
 	    $escapeCount=0; 
 	    $targetString=''; 

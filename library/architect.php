@@ -49,7 +49,7 @@ class Architect {
 		$this->table = $table;
 		
 		$fields = $config['fields'];
-				
+						
 		/**
 		 * Generate Id Structure
 		 */
