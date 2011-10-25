@@ -12,12 +12,6 @@ class Model {
 	private $_table;
 
 	/**
-	 * Predefined ID on insert
-	 */
-	private $_set_id;
-	private $_new = TRUE;
-
-	/**
 	 * Cache and used memory
 	 */
 	private static $_memory;
@@ -39,11 +33,10 @@ class Model {
 	 *
 	 * @param string $dbh
 	 * @param string $table 
-	 * @param string $id 
-	 * @param string $set_id 
+	 * @param string $id  
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function __construct($connection, $table, $id = false, $set_id = false) {
+	public function __construct($connection, $table, $id = false) {
 		/**
 		 * Get Initial Memory Usage
 		 */
@@ -56,11 +49,6 @@ class Model {
 		 */
 		$this->_connection = $dbh;
 		$this->_table = $table;
-
-		/**
-		 * Is an ID being manually set?
-		 */
-		$this->_set_id = $set_id;
 
 		/**
 		 * If an ID is provided load the row, and store it to the cache
@@ -90,11 +78,6 @@ class Model {
 		 * If no ID is provided then load the fields
 		 */
 		else $this->data = $this->_connection->get_fields($table, true);
-
-		/**
-		 * If an id is in the model its not a new model
-		 */
-		if($this->id) $this->_new = false;
 
 		/**
 		 * Recalcuate the used memory and store it
@@ -147,7 +130,7 @@ class Model {
 	 */
 	public function __set($field, $nval) {
 		if(!array_key_exists($field, $this->data)) return;
-		if($field == 'id'&&!$this->_set_id) return;
+		if($field == 'id') return;
 
 		$init_mem = memory_get_usage(true);
 		$this->_modified[$field] = TRUE;
@@ -191,7 +174,7 @@ class Model {
 		 */
 		if(is_array($data)) {
 			foreach($data as $key=>$val) {
-				if($key == 'id'&&!$this->_set_id) continue;
+				if($key == 'id') continue;
 				$this->$key = $val;
 			}
 		}
@@ -206,16 +189,18 @@ class Model {
 		 */
 		$save = array();
 		foreach($this->data as $key=>$val) {
-			if(($key == 'id' && !$this->_set_id) || !isset($this->_modified[$key])) continue;
+			if($key == 'id' || !isset($this->_modified[$key])) continue;
 			$save[$key] = $val;
 		}
+		
+		//var_dump($save);
 
 		/**
 		 * Make the file as modified and then update/insert the values
 		 */
 		$this->_modified = false;
-		if($this->id&&!$this->_new) $this->_connection->update_by_id($this->_table, $save, $this->id);
-		else $this->data['id'] = $this->_connection->insert($this->_table, $save)->insertId();
+		if($this->id) $this->_connection->update_by_id($this->_table, $save, $this->id);
+		else $this->data['id'] = (int) $this->_connection->insert($this->_table, $save)->insertId();
 	}
 
 	/**
@@ -360,6 +345,7 @@ class Model {
 				}
 			break;
 			case 'link':
+			
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args as $id) {
 						$update =  array("\$".$this->_table.'_id' => (string) $this->id);
@@ -380,6 +366,8 @@ class Model {
 					$update =  array("\$".$matched.'_id' => (string) $args[0]);
 					$where = "WHERE `id` = '".$this->id."'";
 					$this->_connection->update($this->_table, $update, $where);
+					
+					var_dump($search);
 					
 					return true;
 				}
