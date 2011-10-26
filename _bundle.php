@@ -105,7 +105,7 @@ class Bundle {
 	 */
 	public static function start() {
 		
-		$check = Env::_require('sql.autoBuildArchitecture', 'yes or no');
+		$check = Env::_require('sql.autoBuildArchitecture', 'yes | no');
 		if($check === 'yes') {
 			self::build_architecture();
 		}
