@@ -5,6 +5,7 @@ use Evolution\Kernel\Service;
 use Evolution\Kernel\Completion;
 use Evolution\Kernel\IncompleteException;
 use Evolution\Kernel\Configure;
+use Evolution\Environment\Bundle as Env;
 use Exception;
 use e;
 
@@ -26,7 +27,7 @@ class Bundle {
 	public function __construct($dir) {
 		// establish the default mysql connection or throw an error
 		// run service binding for connection established
-		Service::bind('Evolution\SQL\Bundle::build_architecture', 'router:ready');
+		Service::bind('Evolution\SQL\Bundle::start', 'router:ready');
 	}
 	public function __bundle_response($method = false) {
 		//if(!isset($this->connections['default']))
@@ -100,6 +101,22 @@ class Bundle {
 	}
 	
 	/**
+	 * Start SQL
+	 */
+	public static function start() {
+		
+		$check = Env::_require('sql.autoBuildArchitecture', 'yes or no');
+		if($check === 'yes') {
+			self::build_architecture();
+		}
+		else if($check !== 'no') {
+			Env::_invalid('sql.autoBuildArchitecture', new Exception("The only acceptable values are `yes` or `no`"));
+		}
+		
+		Service::run('sql:ready');
+	}
+	
+	/**
 	 * Load the Conglomerate of DB Structure Info and Run it through architect
 	 *
 	 * @return void
@@ -144,8 +161,6 @@ class Bundle {
 			
 			e::sql()->query("DROP TABLE `$table`");
 		}
-		
-		Service::run('sql:ready');
 	}
 
 }
