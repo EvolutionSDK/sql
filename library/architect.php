@@ -92,7 +92,6 @@ class Architect {
 		 */
 		if(isset($config['manyToMany'])) foreach($config['manyToMany'] as $key=>$table) {
 			if(is_numeric($key)) $this->_connection_table($this->table, $table);
-			else $this->_connection_table($this->table, $key);
 		}
 
 		/**
