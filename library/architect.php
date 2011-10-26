@@ -399,7 +399,7 @@ class Architect {
 			'Type' => 'timestamp',
 			'Null' => 'YES',
 			'Key' => '',
-			'Default' => NULL,
+			'Default' => 'CURREN_TIMESTAMP',
 			'Extra' => 'on update CURRENT_TIMESTAMP'
 		);
 		
