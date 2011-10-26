@@ -67,13 +67,23 @@ class Architect {
 		/**
 		 * Generate Timestamp Structure
 		 */
-		if(!isset($fields['timestamp'])) {
-			$tmp['timestamp'] = array(
+		if(!isset($fields['updated_timestamp'])) {
+			$tmp['updated_timestamp'] = array(
 				'Type' => 'timestamp',
 				'Null' => 'YES',
 				'Key' => '',
-				'Default' => NULL,
+				'Default' => 'CURRENT_TIMESTAMP',
 				'Extra' => 'on update CURRENT_TIMESTAMP'
+			);
+		}
+		
+		if(!isset($fields['created_timestamp'])) {
+			$tmp['created_timestamp'] = array(
+				'Type' => 'date',
+				'Null' => 'YES',
+				'Key' => '',
+				'Default' => NULL,
+				'Extra' => ''
 			);
 		}
 		
