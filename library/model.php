@@ -257,7 +257,6 @@ class Model {
 			$possible_tables[] = $table;
 			$relation_tables['o'][] = $table;
 		}
-		
 		if(isset($manyToMany)) foreach($manyToMany as $table) {
 			$possible_tables[] = $table;
 			$relation_tables['x'][] = $table;
@@ -341,7 +340,6 @@ class Model {
 				}
 			break;
 			case 'link':
-			
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args[0] as $id) {
 						$update =  array("\$".$this->_table.'_id' => (string) $this->id);
@@ -387,7 +385,7 @@ class Model {
 							"\$flags" => $args[1]
 						);
 						
-						try { $this->_connection->replace($use, $insert); }
+						try { $this->_connection->insert($use, $insert); }
 						catch(\PDOException $e) { }
 					}
 					
@@ -402,7 +400,7 @@ class Model {
 							"\$".$matched.'_id' => (string) $args[0],
 						);
 						
-						try { $this->_connection->replace($use, $insert); }
+						try { $this->_connection->insert($use, $insert); }
 						catch(\PDOException $e) { }
 					}
 					
