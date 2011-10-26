@@ -223,11 +223,6 @@ class Model {
 		$search = strtolower(implode('', $search));
 		
 		/**
-		 * If the first argument is an array set it to the args
-		 */
-		if(isset($args[0]) && is_array($args[0])) $args = $args[0];
-		
-		/**
 		 * Grab the data for the active table
 		 */
 		$relations = Bundle::$db_structure[$this->_table];
@@ -348,7 +343,7 @@ class Model {
 			case 'link':
 			
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
-					if($plural) foreach($args as $id) {
+					if($plural) foreach($args[0] as $id) {
 						$update =  array("\$".$this->_table.'_id' => (string) $this->id);
 						$where = "WHERE `id` = '".$id."'";
 						$this->_connection->update($matched, $update, $where);
@@ -389,9 +384,10 @@ class Model {
 						else $insert = array(
 							"\$".$this->_table.'_id' => (string) $this->id,
 							"\$".$matched.'_id' => (string) $id,
+							"\$flags" => $args[1]
 						);
 						
-						try { $this->_connection->insert($use, $insert); }
+						try { $this->_connection->replace($use, $insert); }
 						catch(\PDOException $e) { }
 					}
 					
@@ -406,7 +402,7 @@ class Model {
 							"\$".$matched.'_id' => (string) $args[0],
 						);
 						
-						try { $this->_connection->insert($use, $insert); }
+						try { $this->_connection->replace($use, $insert); }
 						catch(\PDOException $e) { }
 					}
 					
@@ -415,7 +411,7 @@ class Model {
 			break;
 			case 'unlink':
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
-					if($plural) foreach($args as $id) {
+					if($plural) foreach($args[0] as $id) {
 						$update =  array("\$".$this->_table.'_id' => (string) 0);
 						$where = "WHERE `id` = '".$id."'";
 						$this->_connection->update($matched, $update, $where);
@@ -455,6 +451,8 @@ class Model {
 
 					return true;
 				}				
+			break;
+			case 'relink':
 			break;
 			default:
 				throw new InvalidRequestException("`$method` is not a valid request as `$func(...)` on the `$this->_table` model. valid requests are `get`, `link`, and `unlink`");

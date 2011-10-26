@@ -90,8 +90,9 @@ class Architect {
 		/**
 		 * Create Many to Many connection table and columns
 		 */
-		if(isset($config['manyToMany'])) foreach($config['manyToMany'] as $table) {
-			$this->_connection_table($this->table, $table);
+		if(isset($config['manyToMany'])) foreach($config['manyToMany'] as $key=>$table) {
+			if(is_numeric($key)) $this->_connection_table($this->table, $table);
+			else $this->_connection_table($this->table, $key);
 		}
 
 		/**
@@ -367,6 +368,14 @@ class Architect {
 				'Extra' => 'on update CURRENT_TIMESTAMP'
 			);
 			
+			$fields['$flags'] = array(
+				'Type' => 'bigint(20)',
+				'Null' => 'NO',
+				'Key' => '',
+				'Default' => NULL,
+				'Extra' => ''
+			);
+			
 			$table = "\$connect $table_a";
 			
 			if($this->_exists($table)) return false;
@@ -399,8 +408,16 @@ class Architect {
 			'Type' => 'timestamp',
 			'Null' => 'YES',
 			'Key' => '',
-			'Default' => 'CURREN_TIMESTAMP',
+			'Default' => 'CURRENT_TIMESTAMP',
 			'Extra' => 'on update CURRENT_TIMESTAMP'
+		);
+		
+		$fields['$flags'] = array(
+			'Type' => 'bigint(20)',
+			'Null' => 'NO',
+			'Key' => '',
+			'Default' => NULL,
+			'Extra' => ''
 		);
 		
 		$table1 = "\$connect $table_a $table_b";

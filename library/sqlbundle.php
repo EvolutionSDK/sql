@@ -24,6 +24,7 @@ class SQLBundle {
 				if($kind == 'fields' || $kind == 'singular' || $kind == 'plural') continue;
 				
 				foreach($values as $key=>$val) {
+					if(!is_numeric($key)) $val = $key;
 					if(strpos($val, '.')) continue;
 					
 					$values[$key] = $bundle.'.'.$val;
