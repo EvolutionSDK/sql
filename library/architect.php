@@ -50,6 +50,8 @@ class Architect {
 		$this->table = $table;
 		
 		$fields = $config['fields'];
+		
+		$tmp = array();
 						
 		/**
 		 * Generate Id Structure

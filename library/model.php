@@ -1,6 +1,8 @@
 <?php
 
 namespace Evolution\SQL;
+use Evolution\Kernel\Service;
+use Exception;
 use e;
 
 class Model {
@@ -27,6 +29,76 @@ class Model {
 	 * Has the model bee modified
 	 */
 	private $_modified = false;
+	
+	/**
+	 * Get table
+	 */
+	public function __getTable() {
+		return $this->_table;
+	}
+	
+	/**
+	 * Get a unique reference
+	 */
+	public function __map() {
+		if(empty($this->id))
+			throw new Exception("Cannot use `__map` on an unsaved model");
+		return $this->_table . ':' . $this->id;
+	}
+	
+	/**
+	 * Get HTML Link
+	 */
+	public function __getHTMLLink() {
+		$ex = explode('.', $this->_table);
+		return '<a href="/test/nate/'.array_pop($ex).'/'.$this->id.'">'.$this->title.'</a>';
+	}
+	
+	/**
+	 * Feed entry
+	 */
+	public function feedEntry($name, &$vars, &$scope) {
+		
+		// Loop through each var
+		foreach($vars as $original => $value) {
+			
+			// Get various attributes
+			$filters = explode('|', $original);
+			$var = array_shift($filters);
+			$properties = explode('.', $var);
+			$var = array_shift($properties);
+			
+			// Check for var in scope
+			if(!isset($scope[$var]))
+				continue;
+			
+			// Get property or format model
+			$current = $scope[$var];
+			
+			// Dive into scope
+			foreach($properties as $prop) {
+				$current = $current->$prop;
+			}
+			
+			// Get model links
+			if($current instanceof Model)
+				$current = $current->__getHTMLLink();
+			
+			// Process filters
+			foreach($filters as $filter) {
+				switch($filter) {
+					case 'currency':
+						$current = '$' . number_format($current, 2);
+				}
+			}
+			
+			// Save the variable
+			$vars[$original] = $current;
+		}
+		
+		// Show this story
+		return true;
+	}
 
 	/**
 	 * Initialize the model
@@ -202,6 +274,11 @@ class Model {
 			$save['created_timestamp'] = date("Y-m-d h:i:s");
 			$this->data['id'] = (int) $this->_connection->insert($this->_table, $save)->insertId();
 		}
+		
+		/**
+		 * Let everything know afterward
+		 */
+		Service::run('deferred:register', 'sql:model:saved', $this->__map());
 	}
 
 	/**
@@ -212,8 +289,17 @@ class Model {
 	 */
 	public function delete() {
 		if(isset($this->id)) {
+			
+			// Get the map
+			$m = $this->__map();
+			
 			$this->_connection->delete_by_id($this->_table, $this->id);
 			unset(self::$_cache[$this->_table][$this->id]);
+
+			/**
+			 * Let everything know
+			 */
+			Service::run('deferred:register', 'sql:model:deleted', $m);
 		}
 	}
 	

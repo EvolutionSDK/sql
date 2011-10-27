@@ -1,6 +1,7 @@
 <?php
 
 namespace Evolution\SQL;
+use Evolution\Kernel\Service;
 use e;
 
 /**
@@ -101,11 +102,11 @@ class ListObj implements \Iterator, \Countable {
 	 */
 	public function debug() {
 		$query = $this->_query_cond;
+		$table = $this->_table;
 		
 		
 		
-		
-		// $query
+		// $query $table
 		eval(d);
 	}
 	
@@ -554,7 +555,8 @@ class ListObj implements \Iterator, \Countable {
 		 */
 		if($this->_raw) {
 			$this->_results = $results->all();
-			$this->_has_query = true;
+			if($count === false)
+				$this->_has_query = true;
 			return;
 		}
 		
@@ -563,7 +565,8 @@ class ListObj implements \Iterator, \Countable {
 		$model = "get".ucwords($this->_tb_singular);
 		while($row = $results->row()) $pp[] = $this->_custom_query ? $row : e::$bundle()->$model($row['id']);
 		$this->_results = $pp;
-		$this->_has_query = true;
+		if($count === false)
+			$this->_has_query = true;
 	}
 	
 	/**
