@@ -304,6 +304,11 @@ class Model {
 	}
 	
 	public function __call($func, $args) {
+		
+		// Convert models to IDs
+		if(isset($args[0]) && $args[0] instanceof Model)
+			$args[0] = $args[0]->id;
+		
 		$search = preg_split('/([A-Z])/', $func, 2, PREG_SPLIT_DELIM_CAPTURE);
 		$method = array_shift($search);
 		$search = strtolower(implode('', $search));
@@ -426,6 +431,12 @@ class Model {
 				}
 			break;
 			case 'link':
+			
+				/**
+				 * Let everything know
+				 */
+				Service::run('deferred:register', 'sql:model:linked', $this->__map(), $matched.':'.$args[0]);
+				
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args[0] as $id) {
 						$update =  array("\$".$this->_table.'_id' => (string) $this->id);
@@ -438,7 +449,6 @@ class Model {
 						$where = "WHERE `id` = '".$args[0]."'";
 						$this->_connection->update($matched, $update, $where);
 					}
-					
 					return true;
 				}
 				
@@ -446,7 +456,6 @@ class Model {
 					$update =  array("\$".$matched.'_id' => (string) $args[0]);
 					$where = "WHERE `id` = '".$this->id."'";
 					$this->_connection->update($this->_table, $update, $where);
-					
 					return true;
 				}
 				
@@ -489,11 +498,16 @@ class Model {
 						try { $this->_connection->insert($use, $insert); }
 						catch(\PDOException $e) { }
 					}
-					
 					return true;
 				}				
 			break;
 			case 'unlink':
+			
+				/**
+				 * Let everything know
+				 */
+				Service::run('deferred:register', 'sql:model:unlinked', $this->__map(), $matched.':'.$args[0]);
+			
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args[0] as $id) {
 						$update =  array("\$".$this->_table.'_id' => (string) 0);
@@ -506,7 +520,6 @@ class Model {
 						$where = "WHERE `id` = '".$args[0]."'";
 						$this->_connection->update($matched, $update, $where);
 					}
-					
 					return true;
 				}
 				
@@ -532,11 +545,9 @@ class Model {
 						);
 						$this->_connection->delete($use, $delete);
 					}
-
+					
 					return true;
 				}				
-			break;
-			case 'relink':
 			break;
 			default:
 				throw new InvalidRequestException("`$method` is not a valid request as `$func(...)` on the `$this->_table` model. valid requests are `get`, `link`, and `unlink`");
