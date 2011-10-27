@@ -4,7 +4,6 @@ namespace Evolution\SQL;
 use Evolution\Kernel\Service;
 use Exception;
 use e;
-use Exception;
 
 class Model {
 
