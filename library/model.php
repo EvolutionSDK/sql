@@ -23,7 +23,7 @@ class Model {
 	/**
 	 * Stored Data
 	 */
-	private $data;
+	private $_data;
 
 	/**
 	 * Has the model bee modified
@@ -127,29 +127,29 @@ class Model {
 		 */
 		if($id) {
 			if(!is_array($id) && isset(self::$_cache[$table][$id])) {
-				$this->data =& self::$_cache[$table][$id];
+				$this->_data =& self::$_cache[$table][$id];
 			}
 			
 			else if(is_numeric($id)) {
 				self::$_cache[$table][$id] = $this->_connection->select_by_id($table, $id)->row();
-				$this->data =& self::$_cache[$table][$id];
+				$this->_data =& self::$_cache[$table][$id];
 			}
 		
 			else if(is_array($id)) {
 				self::$_cache[$table][$id['id']] = $id;
-				$this->data =& self::$_cache[$table][$id['id']];
+				$this->_data =& self::$_cache[$table][$id['id']];
 			}
 			
 			/**
 			 * If no data was loaded assume that false was passed
 			 */
-			if($this->data == false) $this->data = $this->_connection->get_fields($table, true);
+			if($this->_data == false) $this->_data = $this->_connection->get_fields($table, true);
 		}
 
 		/**
 		 * If no ID is provided then load the fields
 		 */
-		else $this->data = $this->_connection->get_fields($table, true);
+		else $this->_data = $this->_connection->get_fields($table, true);
 
 		/**
 		 * Recalcuate the used memory and store it
@@ -176,24 +176,24 @@ class Model {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __isset($field) {
-		return isset($this->data[$field]);
+		return isset($this->_data[$field]);
 	}
 
 	/**
-	 * Return the $this->data value for $field
+	 * Return the $this->_data value for $field
 	 *
 	 * @param string $field 
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __get($field) {
-		if(!isset($this->data[$field])) return NULL;
+		if(!isset($this->_data[$field])) return NULL;
 
-		return $this->data[$field];
+		return $this->_data[$field];
 	}
 
 	/**
-	 * Set a new $this->data value for $field
+	 * Set a new $this->_data value for $field
 	 *
 	 * @param string $field 
 	 * @param string $nval 
@@ -201,13 +201,13 @@ class Model {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __set($field, $nval) {
-		if(!array_key_exists($field, $this->data)) return;
+		if(!array_key_exists($field, $this->_data)) return;
 		if($field == 'id') return;
 
 		$init_mem = memory_get_usage(true);
 		$this->_modified[$field] = TRUE;
 
-		$this->data[$field] = $nval;
+		$this->_data[$field] = $nval;
 
 		self::$_memory += (memory_get_usage(true) - $init_mem);
 	}
@@ -223,17 +223,17 @@ class Model {
 	}
 
 	/**
-	 * Return the $this->data model as an array
+	 * Return the $this->_data model as an array
 	 *
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function get_array() {
-		return $this->data;
+		return $this->_data;
 	}
 
 	/**
-	 * Save the $this->data into the table as a new row or update
+	 * Save the $this->_data into the table as a new row or update
 	 *
 	 * @param string $data 
 	 * @return void
@@ -242,7 +242,7 @@ class Model {
 	public function save($data = false) {
 
 		/**
-		 * If $data is passed then process the array into the various $this->data values
+		 * If $data is passed then process the array into the various $this->_data values
 		 */
 		if(is_array($data)) {
 			foreach($data as $key=>$val) {
@@ -260,7 +260,7 @@ class Model {
 		 * Process the query save
 		 */
 		$save = array();
-		foreach($this->data as $key=>$val) {
+		foreach($this->_data as $key=>$val) {
 			if($key == 'id' || !isset($this->_modified[$key])) continue;
 			$save[$key] = $val;
 		}
@@ -272,7 +272,7 @@ class Model {
 		if($this->id) $this->_connection->update_by_id($this->_table, $save, $this->id);
 		else {
 			$save['created_timestamp'] = date("Y-m-d h:i:s");
-			$this->data['id'] = (int) $this->_connection->insert($this->_table, $save)->insertId();
+			$this->_data['id'] = (int) $this->_connection->insert($this->_table, $save)->insertId();
 		}
 		
 		/**
