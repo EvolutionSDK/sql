@@ -71,19 +71,23 @@ class SQLBundle {
 		}
 		
 		if(!isset($relations) && !isset($table)) throw new NoMatchException("There was no table match when calling `$func(...)` on the `e::$this->bundle()` bundle.");
-		
 		switch($method) {
 			case 'get':
-				if(!$plural && isset($args[0])) {
+				if(!$plural) {
+					if(isset($args[0])) {
 					$class = "\\Evolution\\$this->bundle\\Models\\$table";
 					$class2 = "\\Bundles\\$this->bundle\\Models\\$table";
-					try { return new $class($this->database, "$this->bundle.$table", $args[0]); }
+					try { $m = new $class($this->database, "$this->bundle.$table", $args[0]); }
 					catch(\Evolution\Kernel\ClassNotFoundException $e) {
 							
-							try { return new $class2($this->database, "$this->bundle.$table", $args[0]); }
+							try { $m = new $class2($this->database, "$this->bundle.$table", $args[0]); }
 							catch(\Evolution\Kernel\ClassNotFoundException $e) 
-								{ return new Model($this->database, "$this->bundle.$table", $args[0]); }		
+								{ $m = new Model($this->database, "$this->bundle.$table", $args[0]); }		
 					}
+					if(is_object($m) && isset($m->id)) return $m;
+					else return false;
+						
+					} else return false;
 				}
 				else if($plural) {
 					$class = "\\Evolution\\$this->bundle\\Lists\\$table";
