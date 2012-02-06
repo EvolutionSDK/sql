@@ -44,19 +44,35 @@ The query object is a php class to help with the returning of the SQL data. Depe
 
 On an insert pull the id of the row that was inserted (primary key)
 
-	$results->insertId();
+```php
+<?php
+
+$results->insertId();
+```
 
 Return an all the affected rows (by default returns an associative array).
 
-	$results->all($type = 'assoc|num/object');
+```php
+<?php
+
+$results->all($type = 'assoc|num/object');
+```
 
 Return the first row in the result set (by default returns an associative array).
 
-	$results->row($type = 'assoc|num/object');
+```php
+<?php
+
+$results->row($type = 'assoc|num/object');
+```
 
 Return a List Model for the results (if one exists. **Not currently working. Deprecate as is not compatible with system?**)
 
-	$results->lists();
+```php
+<?php
+
+$results->lists();
+```
 
 Return a model for the first result (if one exists. **Not currently working. Deprecate as is not compatible with system?**)
 
