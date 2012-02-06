@@ -1,7 +1,8 @@
 <?php
 
-namespace Evolution\SQL;
-use Evolution\Kernel\Service;
+namespace bundles\SQL;
+use bundles\SQL;
+use Exception;
 use e;
 
 /**
@@ -70,6 +71,13 @@ class ListObj implements \Iterator, \Countable {
 		if($connection) $this->_connection = $connection;
 		
 		$get_table = Bundle::$db_structure[$this->_table];
+
+		$bundle = array_shift(explode('.',$this->_table));
+		if(empty($get_table['singular']))
+			throw new Exception("Double check your `singular:` key and value in `$bundle`'s bundle `./configure/sql_structure.yaml` file on the `$table` table");
+		if(empty($get_table['plural']))
+			throw new Exception("Double check your `plural:` key and value in `$bundle`'s bundle `./configure/sql_structure.yaml` file on the `$table` table");
+
 		$this->_tb_singular = $get_table['singular'];
 		$this->_tb_plural = $get_table['plural'];
 		
@@ -259,7 +267,7 @@ class ListObj implements \Iterator, \Countable {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function multiple_field_search($term, $fields, $verify = false) {
-		$term = mysql_real_escape_string($term);
+		$term = mysql_escape_string($term);
 		if(strlen($term) == 0) return $verify ? '' : $this;
 		
 		$like 	= '`'.implode('` LIKE "%'.$term.'%" OR `', explode(' ', $fields)). '` LIKE "%'.$term.'%"';
@@ -408,11 +416,56 @@ class ListObj implements \Iterator, \Countable {
 	public function paging() {
 		$pages = ceil($this->count('all') / $this->_page_length);
 		return (object) array(
-			'pages' => $page,
+			'pages' => $pages,
 			'page' => $this->_on_page,
 			'length' => $this->_page_length,
 			'items' => $this->count('all')
 		);
+	}
+	
+	/**
+	 * Return Paging Navigation
+	 *
+	 * @return void
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function paging_html($class = '', $gvar = "page") {
+		$paging = $this->paging(); $output = ''; $i=1;
+		if($paging->page > 1) 
+			$output .= "<a class=\"$class\" href=\"?".http_build_query(array_merge(e::$input->get, array($gvar => $paging->page - 1)))."\">&laquo;</a>";
+		while($i<=$paging->pages) {
+			$tmp = $class.($paging->page == $i ? ' selected disabled' : '');
+			$output .= "<a class=\"$tmp\" href=\"?".http_build_query(array_merge(e::$input->get, array($gvar => $i)))."\">$i</a>";
+			if($i == 5 && $paging->pages > 10 && !isset($inc)) {
+				$output .= '...';
+				$i = $paging->pages - 4;
+				$inc = true;
+			} else $i++;
+		}
+		if($paging->page < $paging->pages) 
+			$output .= "<a class=\"$class\" href=\"?".http_build_query(array_merge(e::$input->get, array($gvar => $paging->page + 1)))."\">&raquo;</a>"; $i=1;
+		return $output;
+	}
+	
+	/**
+	 * Return Button Paging Navigation
+	 *
+	 * @return void
+	 * @author Nate Ferrero
+	 */
+	public function buttonPaging($gvar = "page") {
+		$class = 'button';
+		$paging = $this->paging(); $output = ''; $i=1;
+		while($i<=$paging->pages) {
+			$tmp = $class.($paging->page == $i ? ' selected disabled' : '');
+			$output .= "<a class=\"$tmp\" href=\"?$gvar=$i\">$i</a>";
+			if($i == 5 && $paging->pages > 10 && !isset($inc)) {
+				$output .= '...';
+				$i = $paging->pages - 4;
+				$inc = true;
+			} else $i++;
+		}
+		return $output;
 	}
 	
 	/**
@@ -563,7 +616,14 @@ class ListObj implements \Iterator, \Countable {
 		$pp = array();
 		list($bundle, $model) = explode('.', $this->_table);
 		$model = "get".ucwords($this->_tb_singular);
-		while($row = $results->row()) $pp[] = $this->_custom_query ? $row : e::$bundle()->$model($row['id']);
+		while($row = $results->row()) {
+
+			if(!isset(e::$$bundle))
+				throw new Exception("Bundle `$bundle` is not installed");
+			
+			$pp[] = $this->_custom_query ? $row : e::$$bundle->$model($row['id']);
+		}
+		
 		$this->_results = $pp;
 		if($count === false)
 			$this->_has_query = true;
@@ -578,6 +638,14 @@ class ListObj implements \Iterator, \Countable {
 	public function all() {
 		if($this->_has_query == false) $this->_run_query();
 		return $this->_results;
+	}
+
+	/**
+	 * Get first record
+	 */
+	public function first() {
+		$this->rewind();
+		return $this->current();
 	}
 	
 	/**
@@ -613,4 +681,27 @@ class ListObj implements \Iterator, \Countable {
 	 * END ITERATOR METHODS ----------------------------------------------------------------
 	 */
 	
+	/**
+	 * Standard query access
+	 */
+	public function auto() {
+		$fields = Bundle::$db_structure[$this->_table]['fields'];
+		foreach($_REQUEST as $key => $value) {
+			if(empty($value)) continue;
+			$value = preg_replace('[^a-zA-Z0-9_.-]', '', $value);
+			if($key === 'search') {
+				$cond = array();
+				$search = func_get_args();
+				foreach($search as $field) {
+					if(isset($fields[$field]))
+						$cond[] = "`$field` LIKE '%$value%'";
+				}
+				$cond = implode(' OR ', $cond);
+				$this->manual_condition($cond);
+			} else if(isset($fields[$key])) {
+				$this->condition("$key LIKE", "%$value$%");
+			}
+		}
+		return $this;
+	}
 }

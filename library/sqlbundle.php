@@ -1,32 +1,58 @@
 <?php
 
-namespace Evolution\SQL;
+namespace Bundles\SQL;
+use Exception;
 use e;
 
 class SQLBundle {
 	
 	public $bundle;
+	protected $dir;
 	public $database = 'default';
+	protected $initialized = false;
 	
-	private static $local_structure = array();
+	protected $local_structure = array();
 	
 	public function __construct($dir) {
-		$bundle = basename($dir);
-		$this->bundle = $bundle;
-		$sql = e::spyc()->load($dir.'/configure/_sql_structure.yaml', true);
+		$this->dir = $dir;
+		
+		$this->bundle = basename($this->dir);
+	}
+	
+	public function _on_framework_loaded() {
+		$enabled = e::$environment->requireVar('SQL.Enabled', "yes | no");
+		if($enabled === true || $enabled === 'yes')
+			$this->_sql_initialize();
+	}
+	
+	public function _sql_initialize() {
+		$this->initialized = true;
+		$file = $this->dir.'/configure/sql_structure.yaml';
+		
+		/**
+		 * If File Has Changed
+		 */
+		if(e::$yaml->is_changed($file)) Bundle::$changed = true;
+		
+		try {
+			$sql = e::$yaml->load($file, true);
+		}
+		catch(Exception $e) {
+			throw new Exception("Error loading SQL configuration for bundle `$this->bundle` from file `$file`", 0, $e);
+		}
 		
 		/**
 		 * If a relation is on the same table prefix it with its bundle name
 		 */
 		foreach($sql as $table=>$relations) {
-			if(!is_array($relations)) throw new \Exception("Invalid YAML Config Error-ing in table $table in file $dir/configure/_sql_structure.yaml");
+			if(!is_array($relations)) throw new \Exception("Invalid YAML Config Error in table $table in file $file");
 			foreach($relations as $kind=>$values) {
 				if($kind == 'fields' || $kind == 'singular' || $kind == 'plural') continue;
 				
 				foreach($values as $key=>$val) {
 					if(strpos($val, '.')) continue;
 					
-					$values[$key] = $bundle.'.'.$val;
+					$values[$key] = $this->bundle.'.'.$val;
 				}
 				
 				$relations[$kind] = $values;
@@ -37,8 +63,8 @@ class SQLBundle {
 		/**
 		 * Save the DB structure
 		 */
-		foreach($sql as $table=>$val) Bundle::$db_structure[$bundle.'.'.$table] = $val;
-		foreach($sql as $table=>$val) self::$local_structure[$table] = $val;
+		foreach($sql as $table=>$val) Bundle::$db_structure[$this->bundle.'.'.$table] = $val;
+		foreach($sql as $table=>$val) $this->local_structure[$table] = $val;
 		
 	}
 	
@@ -51,14 +77,32 @@ class SQLBundle {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __call($func, $args) {
-		$search = preg_split('/([A-Z])/', $func, 2, PREG_SPLIT_DELIM_CAPTURE);
-		$method = array_shift($search);
-		$search = strtolower(implode('', $search));
+		/**
+		 * Allow Overriding the Call in the child elements
+		 */
+		if(method_exists($this, '__callExtend')) {
+			try { return $this->__callExtend($func, $args); }
+			catch(e\AutoLoadException $e) { }
+		}
 		
-		if(empty(self::$local_structure)) return false;
+		if(!$this->initialized)
+			throw new Exception("SQL for `".__CLASS__."` was not initialized in system startup. Most likely, the environment variable `SQL.Enabled` is off.");
+
+		$func = strtolower($func);
+		$methods = array('get', 'new');
+		foreach($methods as $m) if($m == substr($func, 0, strlen($m))) {
+			$search = substr($func, strlen($m));
+			$method = $m;
+		}
 		
-		foreach(self::$local_structure as $table=>$relations) {
-			if(isset($relations['singular']) && $relations['singular'] == $search) {
+		if(empty($this->local_structure)) return false;
+		
+		foreach($this->local_structure as $table=>$relations) {
+			if($search == $table) {
+				$plural = false;
+				break;
+			}
+			else if(isset($relations['singular']) && $relations['singular'] == $search) {
 				$plural = false;
 				break;
 			}
@@ -70,53 +114,40 @@ class SQLBundle {
 			unset($relations, $table);
 		}
 		
-		if(!isset($relations) && !isset($table)) throw new NoMatchException("There was no table match when calling `$func(...)` on the `e::$this->bundle()` bundle.");
+		if(!isset($relations) && !isset($table)) throw new NoMatchException("There was no table match when calling `$func(...)` on the `e::$$this->bundle` bundle.");
 		switch($method) {
 			case 'get':
 				if(!$plural) {
 					if(isset($args[0])) {
-					$class = "\\Evolution\\$this->bundle\\Models\\$table";
-					$class2 = "\\Bundles\\$this->bundle\\Models\\$table";
-					try { $m = new $class($this->database, "$this->bundle.$table", $args[0]); }
-					catch(\Evolution\Kernel\ClassNotFoundException $e) {
-							
-							try { $m = new $class2($this->database, "$this->bundle.$table", $args[0]); }
-							catch(\Evolution\Kernel\ClassNotFoundException $e) 
-								{ $m = new Model($this->database, "$this->bundle.$table", $args[0]); }		
+						$class = "\\Bundles\\$this->bundle\\Models\\$table";
+						try { $m = new $class($this->database, $relations['singular'], "$this->bundle.$table", $args[0]); }
+						catch(e\AutoLoadException $e) {
+							$m = new Model($this->database, $relations['singular'], "$this->bundle.$table", $args[0]);
+						}
 					}
-					if(is_object($m) && isset($m->id)) return $m;
+					if(isset($m) && is_object($m) && isset($m->id)) return $m;
 					else return false;
-						
-					} else return false;
 				}
 				else if($plural) {
-					$class = "\\Evolution\\$this->bundle\\Lists\\$table";
-					$class2 = "\\Bundles\\$this->bundle\\Lists\\$table";
+					$class = "\\bundles\\$this->bundle\\Lists\\$table";
 					try { return new $class("$this->bundle.$table", $this->database); }
-					catch(\Evolution\Kernel\ClassNotFoundException $e) {
-						
-						try { return new $class2("$this->bundle.$table", $this->database); }
-						catch(\Evolution\Kernel\ClassNotFoundException $e) 
-							{ return new ListObj("$this->bundle.$table", $this->database); }
+					catch(e\AutoLoadException $e) {
+						 return new ListObj("$this->bundle.$table", $this->database);
 					}
 				}
 			break;
 			case 'new':
-				$class = "\\Evolution\\$this->bundle\\Models\\$table";
-				$class2 = "\\Bundles\\$this->bundle\\Models\\$table";
-				try { return new $class($this->database, "$this->bundle.$table", false); }
-				catch(\Evolution\Kernel\ClassNotFoundException $e) {
-					
-					try { return new $class2($this->database, "$this->bundle.$table", false); }
-					catch(\Evolution\Kernel\ClassNotFoundException $e) 
-						{ return new Model($this->database, "$this->bundle.$table", false); }
+				$class = "\\bundles\\$this->bundle\\Models\\$table";
+				try { return new $class($this->database, $relations['singular'], "$this->bundle.$table", false); }
+				catch(e\AutoLoadException $e) {
+					return new Model($this->database, $relations['singular'], "$this->bundle.$table", false);
 				}
 			default:
-				throw new InvalidRequestException("`$method` is not a valid request as `$func(...)` on the `e::$this->bundle()` bundle. valid requests are `new` and `get`.");
+				throw new InvalidRequestException("`$method` is not a valid request as `$func(...)` on the `e::$$this->bundle` bundle. valid requests are `new` and `get`.");
 			break;
 		}
 		
-		throw new NoMatchException("No method was routed when calling `$func(...)` on the `e::$this->bundle()` bundle.");
+		throw new NoMatchException("No method was routed when calling `$func(...)` on the `e::$$this->bundle` bundle.");
 		
 	}
 	

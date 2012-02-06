@@ -1,6 +1,6 @@
 <?php
 
-namespace Evolution\SQL;
+namespace bundles\SQL;
 
 /**
  * @todo Make all paging functions part of the list method
@@ -242,7 +242,7 @@ class OldList {
 	 * @author Nate S. Ferrero
 	 */
 	public function multiple_field_search($term, $fields, $verify = false) {
-		$term = mysql_real_escape_string($term);
+		$term = mysql_escape_string($term);
 		if(strlen($term) == 0)
 			return $verify ? '' : $this;
 
@@ -484,7 +484,7 @@ class OldList {
         $query = $this->_custom_query ? ($count ? $this->_custom_count_query : $this->_custom_query): "SELECT $fs FROM $this->_tables_select $cond";
         if(isset($debug) && $debug)
             return $query;
-		$results = e::db()->query($query);
+		$results = e::$db->query($query);
 		if($count && $count != 'sum') {
 			$cr = $results->row();
 			$this->_count = $cr['ct'];

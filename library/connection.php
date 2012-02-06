@@ -1,6 +1,6 @@
 <?php
 
-namespace Evolution\SQL;
+namespace Bundles\SQL;
 use Exception;
 use PDOException;
 use PDO;
@@ -20,7 +20,7 @@ class Connection {
 	private $connection;
 	
 	/**
-	 * e::sql() slug
+	 * e::$sql slug
 	 */
 	public $slug;
 	
@@ -46,8 +46,31 @@ class Connection {
 		$access = $this->_parse_access_url($url, 'dsn');
 		try {
 			$this->connection = new PDO($access['dsn'], $access['user'], $access['password']);
+			$this->query("SHOW TABLES");
 		} catch(PDOException $e) {
 			throw new ConnectionException("Could not connect to database `$slug`", 0, $e);
+		}
+	
+	}
+	
+	/**
+	 * Checks TimeSync and Potentially Fixes It
+	 *
+	 * @return void
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function checkTimeSync() {
+		static $checked = false;
+		extract($this->query("SELECT NOW() as `mysqltime`;")->row());
+		$phptime = date("Y-m-d H:i:s");
+		$diff = strtotime($mysqltime) - strtotime($phptime);
+		$diff_hours = $diff / 3600;
+		if(abs($diff) > 60) {
+			if(e::$environment->getVar('sql.set_timezone') && !$checked) $this->query("SET time_zone='+00:00';");
+			else throw new Exception("<strong>MySQL Time</strong> is `$diff_hours hours` off from <strong>PHP Time</strong>.<br /><br /><strong>MySQL Time</strong> is `$mysqltime`. <strong>PHP Time</strong> is `$phptime`.<br /><br /><strong>Fix #1:</strong> Set `default-time-zone = '+00:00'` in `my.cnf` under `[mysqld]`<br /><br /><strong>Fix #2:</strong> Set `sql.set_timezone` in your environment file to `1`");
+			
+			$checked = true;
+			$this->checkTimeSync();
 		}
 	}
 	
@@ -64,11 +87,40 @@ class Connection {
 	public function lastInsertId() {
 		return $this->connection->lastInsertId();
 	}
+
+	/**
+	 * Return the proper connection table name
+	 */
+	public function getConnectionTable($t1, $t2) {
+		$table1 = "\$connect $t1 $t2";
+		$table2 = "\$connect $t2 $t1";
+		
+		if($this->_exists($table1)) $connection = $table1;
+		else if($this->_exists($table2)) $connection = $table2;
+		else throw new Exception("The manyToMany connection table for `$t1` and `$t2` was not created please run `?_build_sql`");
+
+		return $connection;
+	}
+
+	/**
+	 * Checks to see if a table exists
+	 */
+	public function _exists($table = false) {
+		$table = $table ? $table : $this->table;
+		if(!$this->query("SHOW TABLES LIKE '$table'")->row()) return false;
+		else return true;
+	}
 	
 	/**
 	 * Run a SQL query
 	 */
 	public function query($sql, $vsprintf = false) {
+	
+		/**
+		 * Trace
+		 */
+		e\trace_enter('SQL Query', $sql, is_array($vsprintf) ? $vsprintf : array(), 7);
+	
 		/**
 		 * Sprint the string with either a value or an array. if there is not an array of queries
 		 */
@@ -99,16 +151,30 @@ class Connection {
 		 */
 		$time = (microtime(true) - $time) * 1000;
 		
+		//e\trace('Query Time: ' . $time);
+		
+		/**
+		 * Trace
+		 */
+		e\trace_exit();
+		
 		/**
 		 * Record total query processing time and history
 		 */
 		self::$time += $time;
-		self::$history[] = array('sql' => $sql, 'ms' => round($time,3), 'time' => date("m/d/Y h:i:s a"));
+		self::$history[] = array('sql' => $sql, 'ms' => round($time,3), 'time' => date("m/d/Y H:i:s a"));
 			
 		/**
 		 * Return the database result object
 		 */
 		return new Result($this, $result);
+	}
+	
+	/**
+	 * Do nothing
+	 */
+	public function void() {
+		
 	}
 	
 	/**
@@ -132,12 +198,16 @@ class Connection {
 			case 'dsn':
 				if($driver == 'mysql') $dsn = "mysql:host=$host;dbname=$database;";
 				if($driver == 'sqlite') $dsn = "sqlite:$host;";
+				if(!isset($dsn))
+					throw new Exception("Unknown database driver `$driver`");
 				$dsn = array('dsn' => $dsn, 'user' => $user, 'password' => $password);
 			break;
 			default:
 				$dsn = array('hostname' => $host, 'port' => $port, 'password' => $password, 'user' => $user);
 			break;
 		}
+		if(!isset($dsn))
+			throw new Exception("Invalid database access string format");
 		return $dsn;
 	}
 	
@@ -277,7 +347,11 @@ class Connection {
 	 */
 	public function model($table, $id = false, $set_id = false) {
 		list($bundle, $table) = explode('.', $table);
-		return e::$bundle()->$table($id);
+
+		if(!isset(e::$$bundle))
+			throw new Exception("Bundle `$bundle` is not installed");
+		
+		return e::$$bundle->$table($id);
 	}
 	
 	/**

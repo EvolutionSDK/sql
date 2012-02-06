@@ -1,7 +1,6 @@
 <?php
 
-namespace Evolution\SQL;
-use Evolution\Kernel\Service;
+namespace bundles\SQL;
 use Exception;
 use e;
 
@@ -12,6 +11,8 @@ class Model {
 	 */
 	private $_connection;
 	private $_table;
+	private $_bundle;
+	private $_name;
 
 	/**
 	 * Cache and used memory
@@ -36,14 +37,43 @@ class Model {
 	public function __getTable() {
 		return $this->_table;
 	}
+
+	/**
+	 * Get model name
+	 */
+	public function __getName() {
+		return $this->_name;
+	}
+
+	/**
+	 * Get bundle name
+	 */
+	public function __getBundle() {
+		return $this->_bundle;
+	}
 	
 	/**
 	 * Get a unique reference
 	 */
-	public function __map() {
+	public function __map($return = 'map') {
 		if(empty($this->id))
 			throw new Exception("Cannot use `__map` on an unsaved model");
-		return $this->_table . ':' . $this->id;
+		
+		switch($return) {
+			case 'bundle':
+				return $this->_bundle;
+			break;
+			case 'name':
+				return $this->_name;
+			break;
+			case 'bundlename':
+				return $this->_bundle . '.' . $this->_name;
+			break;
+			case 'map':
+			default:
+				return $this->_bundle . '.' . $this->_name . ':' . $this->id;
+			break;
+		}
 	}
 	
 	/**
@@ -104,11 +134,12 @@ class Model {
 	 * Initialize the model
 	 *
 	 * @param string $dbh
+	 * @param string $name - Model Name (i.e. member)
 	 * @param string $table 
 	 * @param string $id  
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function __construct($connection, $table, $id = false) {
+	public function __construct($connection, $name, $table, $id = false) {
 		/**
 		 * Get Initial Memory Usage
 		 */
@@ -121,7 +152,10 @@ class Model {
 		 */
 		$this->_connection = $dbh;
 		$this->_table = $table;
-
+		$ex = explode('.', $table);
+		$this->_bundle = $ex[0];
+		$this->_name = $name;
+		
 		/**
 		 * If an ID is provided load the row, and store it to the cache
 		 */
@@ -140,7 +174,7 @@ class Model {
 				$this->_data =& self::$_cache[$table][$id['id']];
 			}
 			else if(is_string($id) && preg_match("/^[A-Za-z-]+$/", $id)) {
-				if(isset(\Evolution\SQL\Bundle::$db_structure[$this->_table]['fields']['slug'])) {
+				if(isset(\Bundles\SQL\Bundle::$db_structure[$this->_table]['fields']['slug'])) {
 					// check if the slug field is available
 					self::$_cache[$table][$id] = $this->_connection->select($table, "WHERE `slug` = '$id'")->row();
 					$this->data =& self::$_cache[$table][$id];
@@ -165,6 +199,12 @@ class Model {
 		 */
 		self::$_this_memory = (memory_get_usage(true) - $init_mem);
 		self::$_memory += self::$_this_memory;
+
+		if(method_exists($this, '__init')) {
+			$this->__init();
+		}
+
+		//if($name == 'account') dump($this->_data);
 	}
 
 	/**
@@ -185,7 +225,24 @@ class Model {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __isset($field) {
-		return isset($this->_data[$field]);
+
+		/**
+		 * Check if the field is set
+		 */
+		if(isset($this->_data[$field]))
+			return true;
+		
+		if($field == 'updated_timestamp') throw new Exception('wHTA');
+
+		/**
+		 * Allow Overriding the Magic Method in the child class
+		 */
+		if(method_exists($this, '__issetExtend')) {
+			try { return $this->__issetExtend($field); }
+			catch(Exception $e) { }
+		}
+		
+		return false;
 	}
 
 	/**
@@ -196,9 +253,22 @@ class Model {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __get($field) {
-		if(!isset($this->_data[$field])) return NULL;
+		
+		/**
+		 * Local data first
+		 */
+		if(isset($this->_data[$field]))
+			return $this->_data[$field];
 
-		return $this->_data[$field];
+		/**
+		 * Allow Overriding the Magic Method in the child class
+		 */
+		if(method_exists($this, '__getExtend')) {
+			try { return $this->__getExtend($field); }
+			catch(Exception $e) { }
+		}
+
+		return null;
 	}
 
 	/**
@@ -210,8 +280,16 @@ class Model {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __set($field, $nval) {
-		if(!array_key_exists($field, $this->_data)) return;
-		if($field == 'id') return;
+		/**
+		 * Allow Overriding the Magic Method in the child class
+		 */
+		if(method_exists($this, '__setExtend')) {
+			try { return $this->__setExtend($field, $nval); }
+			catch(Exception $e) { }
+		}
+		
+		if(!array_key_exists($field, $this->_data)) return null;
+		if($field == 'id') return false;
 
 		$init_mem = memory_get_usage(true);
 		$this->_modified[$field] = TRUE;
@@ -227,8 +305,18 @@ class Model {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function __toString() {
+	public function info() {
 		return "DB Model: #[$this->id] in table $this->_table. Is using $this->_memory bytes of memory.";
+	}
+
+	/**
+	 * DB Model String
+	 *
+	 * @return string
+	 * @author Nate Ferrero
+	 */
+	public function __toString() {
+		return "$this->_table:$this->id";
 	}
 
 	/**
@@ -239,6 +327,9 @@ class Model {
 	 */
 	public function get_array() {
 		return $this->_data;
+	}
+	public function getArray() {
+		return $this->get_array();
 	}
 
 	/**
@@ -255,7 +346,7 @@ class Model {
 		 */
 		if(is_array($data)) {
 			foreach($data as $key=>$val) {
-				if($key == 'id') continue;
+				if($key == 'id' || !isset($this->_data[$key])) continue;
 				$this->$key = $val;
 			}
 		}
@@ -263,7 +354,7 @@ class Model {
 		/**
 		 * If nothing was modified dont spend memory running the query
 		 */
-		if(!$this->_modified) return false;
+		if(!$this->_modified && $data !== true) return false;
 
 		/**
 		 * Process the query save
@@ -280,14 +371,14 @@ class Model {
 		$this->_modified = false;
 		if($this->id) $this->_connection->update_by_id($this->_table, $save, $this->id);
 		else {
-			$save['created_timestamp'] = date("Y-m-d h:i:s");
+			$save['created_timestamp'] = date("Y-m-d H:i:s");
 			$this->_data['id'] = (int) $this->_connection->insert($this->_table, $save)->insertId();
 		}
 		
 		/**
 		 * Let everything know afterward
 		 */
-		Service::run('deferred:register', 'sql:model:saved', $this->__map());
+		e::$events->deferred_register('sql_model_event', 'saved', $this->__map());
 	}
 
 	/**
@@ -308,20 +399,32 @@ class Model {
 			/**
 			 * Let everything know
 			 */
-			Service::run('deferred:register', 'sql:model:deleted', $m);
+			e::$events->deferred_register('sql_model_event', 'deleted', $m);
 		}
 	}
 	
 	public function __call($func, $args) {
-		
+
+		// Original Model
+		$originalModel = isset($args[0]) ? $args[0] : null;
+
 		// Convert models to IDs
 		if(isset($args[0]) && $args[0] instanceof Model)
 			$args[0] = $args[0]->id;
-		
-		$search = preg_split('/([A-Z])/', $func, 2, PREG_SPLIT_DELIM_CAPTURE);
-		$method = array_shift($search);
-		$search = strtolower(implode('', $search));
-		
+
+		$func = strtolower($func);
+		$methods = array('get', 'link', 'unlink');
+		foreach($methods as $m) if($m == substr($func, 0, strlen($m))) {
+			$search = substr($func, strlen($m));
+			$method = $m;
+			if(strtolower($search === 'generic')) {
+				if(!($originalModel instanceof Model))
+					throw new Exception('Cannot use link/unlinkGeneric without passing an instance of `Bundles\\SQL\\Model`');
+				else
+					$search = strtolower($originalModel->__getBundle() . $originalModel->__getName());
+			}
+		}
+
 		/**
 		 * Grab the data for the active table
 		 */
@@ -357,6 +460,7 @@ class Model {
 			$possible_tables[] = $table;
 			$relation_tables['o'][] = $table;
 		}
+
 		if(isset($manyToMany)) foreach($manyToMany as $table) {
 			$possible_tables[] = $table;
 			$relation_tables['x'][] = $table;
@@ -365,19 +469,37 @@ class Model {
 		/**
 		 * Find the results being called
 		 */
-		foreach(Bundle::$db_structure as $table=>$relations) {
-			/**
-			 * Try and match the requested models
-			 */
-			if(isset($relations['plural']) && $relations['plural'] == $search && in_array($table, $possible_tables)) {
+		foreach($possible_tables as $table) {
+			$plural_w = strtolower(Bundle::$db_structure[$table]['plural']);
+			$singular_w = strtolower(Bundle::$db_structure[$table]['singular']);
+
+			if((strrpos($search, $plural_w) === false) && (strrpos($search, $singular_w) === false)) continue;
+
+			if(($tmp = strrpos($search, $plural_w)) !== false && (!isset($found) || !$found)) {
+				$bundle = $tmp === 0 ? $this->_bundle : substr($search, 0, -strlen(substr($search, $tmp)));
+				$model = substr($search, $tmp === 0 ? 0 : strlen($bundle));
 				$plural = true;
 				$found = true;
+
+				if($bundle !== array_shift(explode('.', $table)) || $model !== $plural_w)
+					{ unset($plural, $bundle, $model); $found = false; }
 			}
-			else if(isset($relations['singular']) && $relations['singular'] == $search && in_array($table, $possible_tables)) {
+
+			if(($tmp = strrpos($search, $singular_w)) !== false && (!isset($found) || !$found)) {
+				$bundle = $tmp === 0 ? $this->_bundle : substr($search, 0, -strlen(substr($search, $tmp)));
+				$model = substr($search, $tmp === 0 ? 0 : strlen($bundle));
 				$plural = false;
 				$found = true;
+
+
+
+				if($bundle !== array_shift(explode('.', $table)) || $model !== $singular_w)
+					{ unset($plural, $bundle, $model); $found = false; }
 			}
-			else $found = false;
+
+			if(!isset($found)) $found = false;
+
+			//var_dump(array($search, $bundle,$found));
 						
 			/**
 			 * Now that we found our culprit lets mark the table matched and blow this popsicle stand
@@ -388,11 +510,11 @@ class Model {
 				break;
 			}
 		}
-		
+				
 		/**
 		 * If no results stop everything
 		 */
-		if(isset($found) && !$found) throw new NoMatchException("`$search` could not be be mapped to a table when calling `$func(...)` on the `$this->_table` model.");
+		if(isset($found) && $found == false) throw new NoMatchException("`$search` could not be be mapped to a table when calling `$func(...)` on the `$this->_table` model.");
 		
 		switch($method) {
 			case 'get':
@@ -428,7 +550,7 @@ class Model {
 				
 				if($plural) {
 					$return = new ListObj($matched, $this->_connection->slug);
-					return $return->condition_array($conds)->all();
+					return $return->condition_array($conds);
 				}
 				
 				else if(!$plural) {
@@ -436,15 +558,22 @@ class Model {
 					if(empty($row)) throw new NoMatchException("No results were returned when calling `$func(...)` on the `$this->_table` model.");
 					
 					list($bundle, $model) = explode('.', $matched);
-					return e::$bundle()->{"get".ucfirst($search)}($row);
+					$type = Bundle::$db_structure[$matched]['singular'];
+					
+					if(!isset(e::$$bundle))
+						throw new Exception("Bundle `$bundle` is not installed");
+					
+					return e::$$bundle->{"get".ucfirst($type)}($row);
 				}
 			break;
 			case 'link':
 			
+				if(!$args[0]) return false;
+			
 				/**
 				 * Let everything know
 				 */
-				Service::run('deferred:register', 'sql:model:linked', $this->__map(), $matched.':'.$args[0]);
+				e::$events->deferred_register('sql_model_event', 'linked', $this->__map(), $matched.':'.$args[0]);
 				
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args[0] as $id) {
@@ -458,6 +587,8 @@ class Model {
 						$where = "WHERE `id` = '".$args[0]."'";
 						$this->_connection->update($matched, $update, $where);
 					}
+					
+					$this->save();
 					return true;
 				}
 				
@@ -465,6 +596,8 @@ class Model {
 					$update =  array("\$".$matched.'_id' => (string) $args[0]);
 					$where = "WHERE `id` = '".$this->id."'";
 					$this->_connection->update($this->_table, $update, $where);
+					
+					$this->save();
 					return true;
 				}
 				
@@ -507,6 +640,8 @@ class Model {
 						try { $this->_connection->insert($use, $insert); }
 						catch(\PDOException $e) { }
 					}
+					
+					$this->save();
 					return true;
 				}				
 			break;
@@ -515,7 +650,7 @@ class Model {
 				/**
 				 * Let everything know
 				 */
-				Service::run('deferred:register', 'sql:model:unlinked', $this->__map(), $matched.':'.$args[0]);
+				e::$events->deferred_register('sql_model_event', 'unlinked', $this->__map(), $matched.':'.$args[0]);
 			
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args[0] as $id) {
@@ -529,6 +664,8 @@ class Model {
 						$where = "WHERE `id` = '".$args[0]."'";
 						$this->_connection->update($matched, $update, $where);
 					}
+					
+					$this->save();
 					return true;
 				}
 				
@@ -537,6 +674,7 @@ class Model {
 					$where = "WHERE `id` = '".$this->id."'";
 					$this->_connection->update($this->_table, $update, $where);
 					
+					$this->save();
 					return true;
 				}
 				
@@ -555,10 +693,17 @@ class Model {
 						$this->_connection->delete($use, $delete);
 					}
 					
+					$this->save();
 					return true;
 				}				
 			break;
 			default:
+				/**
+				 * HACK
+				 * @author Nate Ferrero
+				 * This is to prevent weird bugs until we get LHTML scope figured out
+				 */
+				return $this->$func;
 				throw new InvalidRequestException("`$method` is not a valid request as `$func(...)` on the `$this->_table` model. valid requests are `get`, `link`, and `unlink`");
 			break;
 		}

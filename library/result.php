@@ -1,5 +1,5 @@
 <?php
-namespace Evolution\SQL;
+namespace bundles\SQL;
 use PDOStatement;
 use PDO;
 use e;
@@ -86,7 +86,11 @@ class Result {
 		var_dump($tables);
 		list($bundle, $model) = explode('.', $tables[1]);
 		$list = $model.'_list';
-		return e::$bundle()->$list();
+
+		if(!isset(e::$$bundle))
+			throw new Exception("Bundle `$bundle` is not installed");
+		
+		return e::$$bundle->$list();
 	}
 	
 	public function model() {
@@ -94,7 +98,11 @@ class Result {
 		$query = $this->result->queryString;
 		preg_match('/FROM `?([\w.]+)`?/', $query, $tables);
 		list($bundle, $model) = explode('.', $tables[1]);
-		return e::$bundle()->$model($row['id']);
+
+		if(!isset(e::$$bundle))
+			throw new Exception("Bundle `$bundle` is not installed");
+		
+		return e::$$bundle->$model($row['id']);
 	}
 	
 	/**

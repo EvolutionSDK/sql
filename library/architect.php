@@ -1,6 +1,6 @@
 <?php
 
-namespace Evolution\SQL;
+namespace bundles\SQL;
 
 class Architect {
 	
@@ -105,6 +105,7 @@ class Architect {
 		 * Make sure all required fields are present
 		 */
 		foreach($fields as $field=>$val) {
+			
 			if($val == '_suppress') { unset($fields[$field]); continue; }
 			
 			if(!is_array($val)) {
@@ -122,7 +123,10 @@ class Architect {
 				if(!isset($val['Default'])) $val['Default'] = NULL;
 				if(!isset($val['Extra'])) $val['Extra'] = '';				
 			}
-			
+
+			if($val['Null'] === true) $val['Null'] = 'YES';
+			if($val['Null'] === false) $val['Null'] = 'NO';
+
 			$fields[$field] = $val;
 		}
 		
