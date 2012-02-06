@@ -117,6 +117,11 @@ class Bundle {
 		$this->connections[$slug] = new Connection($info, $slug);
 		return $this->connections[$slug];
 	}
+
+	public function __buildSQL() {
+		$this->build_relationships();
+		$this->build_architecture();
+	}
 	
 	/**
 	 * Build hasOne and hasMany Relationships

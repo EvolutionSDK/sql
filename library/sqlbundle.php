@@ -10,6 +10,7 @@ class SQLBundle {
 	protected $dir;
 	public $database = 'default';
 	protected $initialized = false;
+	private $_changed = false;
 	
 	protected $local_structure = array();
 	
@@ -32,7 +33,10 @@ class SQLBundle {
 		/**
 		 * If File Has Changed
 		 */
-		if(e::$yaml->is_changed($file)) Bundle::$changed = true;
+		if(e::$yaml->is_changed($file)) {
+			Bundle::$changed = true;
+			$this->_changed = true;
+		}
 		
 		try {
 			$sql = e::$yaml->load($file, true);
@@ -57,6 +61,7 @@ class SQLBundle {
 				
 				$relations[$kind] = $values;
 			}
+			$relations['changed'] = $this->_changed;
 			$sql[$table] = $relations;
 		}
 				
