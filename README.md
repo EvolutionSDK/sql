@@ -22,19 +22,15 @@ To run manual queries it is as simple as this.
 
 We also have several query shortcuts designed to help you write simpiler, prettier queries.
 
-```php
-<?php
-
-e::$sql()
-	->select($table, $conditions = '');
-	->select_by_id($table, $id);
-	->insert($table, $array);
-	->replace($table, $array);
-	->update($table, $array, $conditions = '');
-	->update_by_id($table, $array, $id);
-	->delete($table, $conditions = '');
-	->delete_by_id($table, $id);
-```
+	e::$sql()
+		->select($table, $conditions = '');
+		->select_by_id($table, $id);
+		->insert($table, $array);
+		->replace($table, $array);
+		->update($table, $array, $conditions = '');
+		->update_by_id($table, $array, $id);
+		->delete($table, $conditions = '');
+		->delete_by_id($table, $id);
 
 All of the above methods will return a query object to help with interacting with the results.
 
@@ -44,35 +40,19 @@ The query object is a php class to help with the returning of the SQL data. Depe
 
 On an insert pull the id of the row that was inserted (primary key)
 
-```php
-<?php
-
-$results->insertId();
-```
+	$results->insertId();
 
 Return an all the affected rows (by default returns an associative array).
 
-```php
-<?php
-
-$results->all($type = 'assoc|num/object');
-```
+	$results->all($type = 'assoc|num/object');
 
 Return the first row in the result set (by default returns an associative array).
 
-```php
-<?php
-
-$results->row($type = 'assoc|num/object');
-```
+	$results->row($type = 'assoc|num/object');
 
 Return a List Model for the results (if one exists. **Not currently working. Deprecate as is not compatible with system?**)
 
-```php
-<?php
-
-$results->lists();
-```
+	$results->lists();
 
 Return a model for the first result (if one exists. **Not currently working. Deprecate as is not compatible with system?**)
 
@@ -195,6 +175,11 @@ Relationships are declared in the sql_structure.yaml file as follows.
 	manyToMany:
 		- store
 
+If you want to create a relationship on another bundle just use the whole `bundle.table` name.
+
+	hasOne:
+		- members.account
+
 You can declare an infinite amount of relationships and the architecture class will compensate for the changes.
 
 Using Models (On a Bundle)
@@ -259,11 +244,15 @@ Now that you have attached a author to your book you can run
 	$book = $this->getBook(1);			# Within Bundles\Inventory\Bundle
 	echo $book->getAuthor()->name;		# Returns: "Kelly Becker"
 
+If you want to get a linked model on another bundle use the format of `$book->getBundleSingular()` or `$book->getBundlePlural()` respectively. So if instead of an authors table I used a members table I could run.
+
+	$book = e::$inventory->getBook(1);	# Outside Bundles\Inventory\Bundle
+	$book = $this->getBook(1);			# Within Bundles\Inventory\Bundle
+	echo $book->getMembersAccount()->name();		# Returns: "Kelly Becker"
 
 Multiple Connections
 ====================
 Currently there is only limited support for multiple database connections within E3.
 	
-	e::sql()->addConnection(slug, array)
-	e::sql()->useConnection(slug)->queryobject
+	e::$sql(slug)->query("QUERY");
 	
