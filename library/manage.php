@@ -16,7 +16,16 @@ class Manage {
 		e::$sql->__buildSQL();
 	}
 
-	public function sqlInfo() {
+	public function sqlInfo($rchange = false) {
+		if($rchange) {
+			$rchange = 0;
+			foreach(Bundle::$db_structure as $info) {
+				if($info['changed'] == true) $rchange++;
+			}
+			if($rchange > 0) return $rchange.' Pending Changes'; 
+			else return;
+		}
+
 		ob_start();
 		foreach(Bundle::$db_structure as $table => $info) {
 			list($bundle, $tbl) = explode('.', $table);
@@ -69,6 +78,7 @@ class Manage {
 	public function tile() {
 		$tile = new Tile('sql');
 		$tile->body .= '<h2>Manage your database backup schedule, schema upgrades, and view statistics.</h2>';
+		$tile->alert = $this->sqlInfo(true);
 		return $tile;
 	}
 }

@@ -31,3 +31,12 @@ store:
     address: text
   manyToMany:
     - shelf
+
+store:
+  singular: store
+  plural: stores
+  fields:
+    name: string
+    address: text
+  manyToMany:
+    - shelf
