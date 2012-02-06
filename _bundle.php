@@ -39,7 +39,7 @@ class Bundle {
 		 * Build Architecture
 		 */
 		if($enabled === true || $enabled === 'yes')
-			if(e::$sql->query("SHOW TABLES")->count() == 0 || isset($_GET['_build_sql'])) $this->build_architecture();
+			if(e::$sql->query("SHOW TABLES")->count() == 0) $this->build_architecture();
 	}
 	
 	public function __getBundle($method = false) {
