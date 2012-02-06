@@ -23,6 +23,8 @@ To run manual queries it is as simple as this.
 We also have several query shortcuts designed to help you write simpiler, prettier queries.
 
 ```php
+<?php
+
 e::$sql()
 	->select($table, $conditions = '');
 	->select_by_id($table, $id);
