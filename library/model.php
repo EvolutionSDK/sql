@@ -346,7 +346,7 @@ class Model {
 		 */
 		if(is_array($data)) {
 			foreach($data as $key=>$val) {
-				if($key == 'id' || !isset($this->_data[$key])) continue;
+				if($key == 'id') continue;
 				$this->$key = $val;
 			}
 		}
