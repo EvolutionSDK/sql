@@ -223,7 +223,8 @@ class Connection {
 	 */
 	public function insert($table, $array, $vsprintf = false) {
 		$update = $this->_fragment($array);
-		return $this->query("INSERT INTO `$table` SET $update;", $vsprintf);
+		if(!empty($update)) $update = 'SET '.$update;
+		return $this->query("INSERT INTO `$table` $update;", $vsprintf);
 	}
 
 	/**
@@ -252,7 +253,8 @@ class Connection {
 	 */
 	public function update($table, $array, $conditions, $vsprintf = false) {
 		$update = $this->_fragment($array);
-		return $this->query("UPDATE `$table` SET $update $conditions;", $vsprintf);
+		if(!empty($update)) $update = 'SET '.$update;
+		return $this->query("UPDATE `$table` $update $conditions;", $vsprintf);
 	}
 
 	/**
