@@ -355,6 +355,7 @@ class Model {
 		 * If nothing was modified dont spend memory running the query
 		 */
 		if(!$this->_modified && $data !== true) return false;
+		if($this->id && $data === true) return false;
 
 		/**
 		 * Process the query save
