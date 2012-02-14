@@ -322,17 +322,33 @@ class Connection {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function get_fields($table, $as_keys = false) {
+		if($as_keys === true) {
+			if(!isset(Bundle::$db_structure[$table])) return false;
+
+			$array = Bundle::$db_structure[$table]['fields'];
+			if($array['id'] != '_supress') $array['id'] = 'number';
+			if($array['created_timestamp'] != '_supress') $array['created_timestamp'] = 'date';
+			if($array['updated_timestamp'] != '_supress') $array['updated_timestamp'] = 'date';
+
+			foreach($array as $key => &$column) {
+				$column = null;
+			}
+
+			return $array;
+		}
+
 		$cols = $this->query("SHOW COLUMNS FROM `$table`;");
 		$fields = array();
 		
 		if($cols->count() > 0) {
 			$array = $cols->all();
-			foreach($array as $col) {
-				if($as_keys) $fields[$col['Field']] = NULL;
-				else $fields[$col['Field']] = $col;
-   			}
+
+			foreach($array as $col)
+				$fields[$col['Field']] = $col;
+			
 			return $fields;
 		}
+		
 		else return false;
 	}
 	
