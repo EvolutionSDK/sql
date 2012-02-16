@@ -635,9 +635,15 @@ class ListObj implements \Iterator, \Countable {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function all() {
+	public function all($callback = false) {
 		if($this->_has_query == false) $this->_run_query();
-		return $this->_results;
+		if(!is_callable($callback)) return $this->_results;
+
+		$return = array();
+		foreach($this->_results as $result)
+			$return[] = $callback($result);
+
+		return $return;
 	}
 
 	/**

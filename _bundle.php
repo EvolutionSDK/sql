@@ -57,6 +57,7 @@ class Bundle {
 	 * @author David Boskovic
 	 */
 	public function __callBundle($connection = 'default') {
+		if($connection == '%bundle%') return $this;
 		
 		return $this->useConnection($connection);
 		
@@ -121,6 +122,7 @@ class Bundle {
 	public function __buildSQL() {
 		$this->build_relationships();
 		$this->build_architecture();
+		return true;
 	}
 	
 	/**

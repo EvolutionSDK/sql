@@ -13,7 +13,7 @@ class Manage {
 	public $title = 'SQL';
 
 	public function buildSQL() {
-		e::$sql->__buildSQL();
+		return e::sql('%bundle%')->__buildSQL();
 	}
 
 	public function sqlInfo($rchange = false) {
@@ -56,8 +56,8 @@ class Manage {
 	}
 	
 	public function page($path) {
-		if($path == 'sync') return $this->buildSQL();
-		if($path == 'uptd') return $this->sqlInfo();
+		if(array_shift($path) == 'sync') return $this->buildSQL();
+		if(array_shift($path) == 'uptd') return $this->sqlInfo();
 
 		$all = array();
 		
