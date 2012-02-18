@@ -7,6 +7,11 @@ use PDO;
 use e;
 
 /**
+ * LongQueryException
+ */
+class LongQueryException extends Exception {}
+
+/**
  * Establish an SQL session with the database server.
  *
  * @package default
@@ -97,7 +102,7 @@ class Connection {
 		
 		if($this->_exists($table1)) $connection = $table1;
 		else if($this->_exists($table2)) $connection = $table2;
-		else throw new Exception("The manyToMany connection table for `$t1` and `$t2` was not created please run `?_build_sql`");
+		else throw new Exception("The manyToMany connection table for `$t1` and `$t2` was not created, please build SQL");
 
 		return $connection;
 	}
@@ -150,8 +155,12 @@ class Connection {
 		 * Stop the timer and return how long the query took
 		 */
 		$time = (microtime(true) - $time) * 1000;
-		
-		//e\trace('Query Time: ' . $time);
+
+		/**
+		 * Report an Exception if the query took over 10ms
+		 */
+		if($time > 10.0)
+			e::$events->exception(new LongQueryException("[" . number_format($time, 1) . " ms] $sql"));
 		
 		/**
 		 * Trace
@@ -321,7 +330,7 @@ class Connection {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function get_fields($table, $as_keys = false) {
+	public function get_fields($table, $as_keys = true) {
 		if($as_keys === true) {
 			if(!isset(Bundle::$db_structure[$table])) return false;
 
