@@ -26,6 +26,8 @@ class Manage {
 			else return;
 		}
 
+		if(isset($_GET['--debug'])) dump(Bundle::$db_structure);
+
 		ob_start();
 		foreach(Bundle::$db_structure as $table => $info) {
 			list($bundle, $tbl) = explode('.', $table);
