@@ -186,13 +186,13 @@ class Model {
 			/**
 			 * If no data was loaded assume that false was passed
 			 */
-			if($this->_data == false) $this->_data = $this->_connection->get_fields($table);
+			if($this->_data == false) $this->_data = $this->_connection->get_fields($table, true);
 		}
 
 		/**
 		 * If no ID is provided then load the fields
 		 */
-		else $this->_data = $this->_connection->get_fields($table);
+		else $this->_data = $this->_connection->get_fields($table, true);
 
 		/**
 		 * Recalcuate the used memory and store it

@@ -7,11 +7,6 @@ use PDO;
 use e;
 
 /**
- * LongQueryException
- */
-class LongQueryException extends Exception {}
-
-/**
  * Establish an SQL session with the database server.
  *
  * @package default
@@ -71,7 +66,7 @@ class Connection {
 		$diff = strtotime($mysqltime) - strtotime($phptime);
 		$diff_hours = $diff / 3600;
 		if(abs($diff) > 60) {
-			if(e::$environment->requireVar('sql.AutoSetTimezone', 'yes | no') && !$checked) $this->query("SET time_zone='+00:00';");
+			if(e::$environment->getVar('sql.set_timezone') && !$checked) $this->query("SET time_zone='+00:00';");
 			else throw new Exception("<strong>MySQL Time</strong> is `$diff_hours hours` off from <strong>PHP Time</strong>.<br /><br /><strong>MySQL Time</strong> is `$mysqltime`. <strong>PHP Time</strong> is `$phptime`.<br /><br /><strong>Fix #1:</strong> Set `default-time-zone = '+00:00'` in `my.cnf` under `[mysqld]`<br /><br /><strong>Fix #2:</strong> Set `sql.set_timezone` in your environment file to `1`");
 			
 			$checked = true;
@@ -102,7 +97,7 @@ class Connection {
 		
 		if($this->_exists($table1)) $connection = $table1;
 		else if($this->_exists($table2)) $connection = $table2;
-		else throw new Exception("The manyToMany connection table for `$t1` and `$t2` was not created, please build SQL");
+		else throw new Exception("The manyToMany connection table for `$t1` and `$t2` was not created please run `?_build_sql`");
 
 		return $connection;
 	}
@@ -155,12 +150,8 @@ class Connection {
 		 * Stop the timer and return how long the query took
 		 */
 		$time = (microtime(true) - $time) * 1000;
-
-		/**
-		 * Report an Exception if the query took over 10ms
-		 */
-		if($time > 10.0)
-			e::$events->exception(new LongQueryException("[" . number_format($time, 1) . " ms] $sql"));
+		
+		//e\trace('Query Time: ' . $time);
 		
 		/**
 		 * Trace
@@ -330,7 +321,7 @@ class Connection {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function get_fields($table, $as_keys = true) {
+	public function get_fields($table, $as_keys = false) {
 		if($as_keys === true) {
 			if(!isset(Bundle::$db_structure[$table])) return false;
 

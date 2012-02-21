@@ -28,6 +28,7 @@ class Bundle {
 	}
 	
 	public function __initBundle() {
+		e\Trace("SQL Initializing.");
 		$enabled = e::$environment->requireVar('SQL.Enabled', "yes | no");
 		
 		/**
