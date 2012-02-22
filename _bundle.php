@@ -8,8 +8,13 @@ use e;
 /**
  * SQL Exceptions
  */
-class NoMatchException extends Exception { }
-class InvalidRequestException extends Exception { }
+class NoMatchException extends Exception {
+	public $severity = 5;
+}
+
+class InvalidRequestException extends Exception {
+	public $severity = 2;
+}
 
 /**
  * SQL Bundle
