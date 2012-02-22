@@ -44,11 +44,17 @@ class SQLBundle {
 		catch(Exception $e) {
 			throw new Exception("Error loading SQL configuration for bundle `$this->bundle` from file `$file`", 0, $e);
 		}
-		
+
 		/**
 		 * If a relation is on the same table prefix it with its bundle name
 		 */
 		foreach($sql as $table=>$relations) {
+			if(isset($relations['extensions'])) foreach($relations['extensions'] as $extension) {
+				$extension = e::sql('%bundle%')->extension($extension);
+				if(method_exists($extension, '_tableStructure'))
+					$extension->_tableStructure($this->bundle.'.'.$table, $relations);
+			}
+
 			if(!is_array($relations)) throw new \Exception("Invalid YAML Config Error in table $table in file $file");
 			foreach($relations as $kind=>$values) {
 				if($kind == 'fields' || $kind == 'singular' || $kind == 'plural') continue;

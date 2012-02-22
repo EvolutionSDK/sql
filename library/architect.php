@@ -50,6 +50,12 @@ class Architect {
 		$this->table = $table;
 		
 		$fields = $config['fields'];
+
+		if(isset($config['extensions']) foreach($config['extensions'] as $extension) {
+			$extension = e::sql('%bundle%')->extension($extension);
+			if(method_exists($extension, '_buildTable'))
+				$extension->_buildTable($table);
+		}
 		
 		$tmp = array();
 						

@@ -69,18 +69,6 @@ class Bundle {
 		if($connection == '%bundle%') return $this;
 		
 		return $this->useConnection($connection);
-		
-	}
-	
-	/**
-	 * Get the database architect for a specific connection, leave false for current
-	 *
-	 * @param string $connection 
-	 * @return void
-	 * @author David Boskovic
-	 */
-	public function architect($connection = false) {
-		
 	}
 	
 	/**
@@ -171,6 +159,11 @@ class Bundle {
 		}
 		
 	}
+
+	public function extension($ext) {
+		$class = "\\Bundles\\SQL\\Extensions\\$ext";
+		return new $class;
+	} 
 	
 	/**
 	 * Load the Conglomerate of DB Structure Info and Run it through architect
