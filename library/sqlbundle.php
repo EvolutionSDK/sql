@@ -57,7 +57,7 @@ class SQLBundle {
 
 			if(!is_array($relations)) throw new \Exception("Invalid YAML Config Error in table $table in file $file");
 			foreach($relations as $kind=>$values) {
-				if($kind == 'fields' || $kind == 'singular' || $kind == 'plural') continue;
+				if($kind == 'fields' || $kind == 'singular' || $kind == 'plural' || $kind == 'extensions') continue;
 				
 				foreach($values as $key=>$val) {
 					if(strpos($val, '.')) continue;

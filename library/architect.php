@@ -1,6 +1,8 @@
 <?php
 
 namespace bundles\SQL;
+use Exception;
+use e;
 
 class Architect {
 	
@@ -51,7 +53,7 @@ class Architect {
 		
 		$fields = $config['fields'];
 
-		if(isset($config['extensions']) foreach($config['extensions'] as $extension) {
+		if(isset($config['extensions'])) foreach($config['extensions'] as $extension) {
 			$extension = e::sql('%bundle%')->extension($extension);
 			if(method_exists($extension, '_buildTable'))
 				$extension->_buildTable($table);
