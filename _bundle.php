@@ -186,9 +186,9 @@ class Bundle {
 			
 			if(strpos($table, '$') !== false) continue;
 			if(in_array($table, $tables)) continue;
-			if(strpos($table, '.') === false) continue;
+			//if(strpos($table, '.') === false) continue;
 			
-			e::$sql->query("DROP TABLE `$table`");
+			e::$sql->query("RENAME TABLE `$table` TO `\$archived $table`");
 		}
 	}
 
