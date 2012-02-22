@@ -30,6 +30,9 @@ class Bundle {
 		
 		// Add manager
 		e::configure('manage')->activeAddKey('bundle', __NAMESPACE__, 'sql');
+
+		// SQL Init event
+		e::$events->sql_init();
 	}
 	
 	public function __initBundle() {
