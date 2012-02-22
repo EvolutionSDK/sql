@@ -20,6 +20,11 @@ class ListObj implements \Iterator, \Countable {
 	 * Tables
 	 */
 	public $_table;
+
+	/**
+	 * Extension Handler
+	 */
+	private $_extensionHandler;
 	
 	/**
 	 * Results
@@ -710,4 +715,90 @@ class ListObj implements \Iterator, \Countable {
 		}
 		return $this;
 	}
+
+	/**
+	 * Isset to allow read-only extension loading
+	 * @author Nate Ferrero
+	 */
+	public final function __isset($field) {
+
+		/**
+		 * Extension handler
+		 * @author Nate Ferrero
+		 */
+		if($field === '_') {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get to allow read-only extension loading
+	 * @author Nate Ferrero
+	 */
+	public final function __get($field) {
+
+		/**
+		 * Extension handler
+		 * @author Nate Ferrero
+		 */
+		if($field === '_') {
+			if(!isset($this->_extensionHandler))
+				$this->_extensionHandler = new ListExtensionHandler($this);
+			return $this->_extensionHandler;
+		}
+
+		return null;
+	}
+
+}
+
+
+/**
+ * List Extension Handler
+ * @author Nate Ferrero
+ */
+class ListExtensionHandler {
+
+	private $list;
+	private $extensions = array();
+
+	public function __construct($list) {
+		$this->list = $list;
+	}
+
+	public function __isset($extension) {
+		return true;
+	}
+
+	public function __get($extension) {
+		$extension = strtolower($extension)
+		if(!isset($this->extensions[$extension]))
+			$this->extensions[$extension] = new ListExtensionAccess($this->list, e::sql('%bundle%')->extension($extension));
+		return $this->extensions[$extension];
+	}
+
+}
+
+/**
+ * List Extension Access
+ * @author Nate Ferrero
+ */
+class ListExtensionAccess {
+
+	private $list;
+	private $extension;
+
+	public function __construct($list, $extension) {
+		$this->list = $list;
+		$this->extension = $extension;
+	}
+
+	public function __call($method, $args) {
+		$method = "list" . ucfirst($method);
+		array_unshift($args, $this->list);
+		return call_user_func_array(array($this->extension, $method), $args);
+	}
+
 }

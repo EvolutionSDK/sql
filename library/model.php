@@ -27,6 +27,11 @@ class Model {
 	private $_data;
 
 	/**
+	 * Extension Handler
+	 */
+	private $_extensionHandler;
+
+	/**
 	 * Has the model bee modified
 	 */
 	private $_modified = false;
@@ -227,6 +232,14 @@ class Model {
 	public function __isset($field) {
 
 		/**
+		 * Extension handler
+		 * @author Nate Ferrero
+		 */
+		if($field === '_') {
+			return true;
+		}
+
+		/**
 		 * Check if the field is set
 		 */
 		if(isset($this->_data[$field]))
@@ -253,6 +266,16 @@ class Model {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __get($field) {
+
+		/**
+		 * Extension handler
+		 * @author Nate Ferrero
+		 */
+		if($field === '_') {
+			if(!isset($this->_extensionHandler))
+				$this->_extensionHandler = new ModelExtensionHandler($this);
+			return $this->_extensionHandler;
+		}
 		
 		/**
 		 * Local data first
@@ -715,5 +738,53 @@ class Model {
 		if(!$this->_connection->query("SHOW TABLES LIKE '$table'")->row()) return false;
 		else return true;
 	}
-	
+
+}
+
+/**
+ * Model Extension Handler
+ * @author Nate Ferrero
+ */
+class ModelExtensionHandler {
+
+	private $model;
+	private $extensions = array();
+
+	public function __construct($model) {
+		$this->model = $model;
+	}
+
+	public function __isset($extension) {
+		return true;
+	}
+
+	public function __get($extension) {
+		$extension = strtolower($extension)
+		if(!isset($this->extensions[$extension]))
+			$this->extensions[$extension] = new ModelExtensionAccess($this->model, e::sql('%bundle%')->extension($extension));
+		return $this->extensions[$extension];
+	}
+
+}
+
+/**
+ * Model Extension Access
+ * @author Nate Ferrero
+ */
+class ModelExtensionAccess {
+
+	private $model;
+	private $extension;
+
+	public function __construct($model, $extension) {
+		$this->model = $model;
+		$this->extension = $extension;
+	}
+
+	public function __call($method, $args) {
+		$method = "model" . ucfirst($method);
+		array_unshift($args, $this->model);
+		return call_user_func_array(array($this->extension, $method), $args);
+	}
+
 }
