@@ -453,7 +453,7 @@ class Model {
 		 * Grab the data for the active table
 		 */
 		$relations = Bundle::$db_structure[$this->_table];
-		
+
 		/**
 		 * Remove unneeded relationship information
 		 */
@@ -759,9 +759,9 @@ class ModelExtensionHandler {
 	}
 
 	public function __get($extension) {
-		$extension = strtolower($extension)
+		$extension = strtolower($extension);
 		if(!isset($this->extensions[$extension]))
-			$this->extensions[$extension] = new ModelExtensionAccess($this->model, e::sql('%bundle%')->extension($extension));
+			$this->extensions[$extension] = new ModelExtensionAccess($this->model, Bundle::extension($extension));
 		return $this->extensions[$extension];
 	}
 

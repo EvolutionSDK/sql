@@ -773,9 +773,9 @@ class ListExtensionHandler {
 	}
 
 	public function __get($extension) {
-		$extension = strtolower($extension)
+		$extension = strtolower($extension);
 		if(!isset($this->extensions[$extension]))
-			$this->extensions[$extension] = new ListExtensionAccess($this->list, e::sql('%bundle%')->extension($extension));
+			$this->extensions[$extension] = new ListExtensionAccess($this->list, Bundle::extension($extension));
 		return $this->extensions[$extension];
 	}
 

@@ -50,7 +50,7 @@ class SQLBundle {
 		 */
 		foreach($sql as $table=>$relations) {
 			if(isset($relations['extensions'])) foreach($relations['extensions'] as $extension) {
-				$extension = e::sql('%bundle%')->extension($extension);
+				$extension = Bundle::extension($extension);
 				if(method_exists($extension, '_tableStructure'))
 					$extension->_tableStructure($this->bundle.'.'.$table, $relations);
 			}
@@ -70,7 +70,7 @@ class SQLBundle {
 			$relations['changed'] = $this->_changed;
 			$sql[$table] = $relations;
 		}
-				
+
 		/**
 		 * Save the DB structure
 		 */

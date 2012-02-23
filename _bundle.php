@@ -157,10 +157,10 @@ class Bundle {
 			
 			$config = array();
 		}
-		
+
 	}
 
-	public function extension($ext) {
+	public static function extension($ext) {
 		$class = "\\Bundles\\SQL\\Extensions\\$ext";
 		return new $class;
 	} 
