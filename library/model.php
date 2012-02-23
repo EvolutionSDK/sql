@@ -781,6 +781,24 @@ class ModelExtensionAccess {
 		$this->extension = $extension;
 	}
 
+	public function __set($var, $val) {
+		$method = 'modelSet';
+		if(method_exists($this->extension, $method))
+			return $this->extension->$method($this->model, $var, $val);
+	}
+
+	public function __get($var) {
+		$method = 'modelGet';
+		if(method_exists($this->extension, $method))
+			return $this->extension->$method($this->model, $var);
+	}
+
+	public function __isset($var) {
+		$metod = 'modelIsset';
+		if(method_exists($this->extension, $method))
+			return $this->extension->$method($this->model, $var);
+	}
+
 	public function __call($method, $args) {
 		$method = "model" . ucfirst($method);
 		array_unshift($args, $this->model);
