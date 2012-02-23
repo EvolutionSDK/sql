@@ -670,7 +670,6 @@ class Model {
 				}				
 			break;
 			case 'unlink':
-			
 				/**
 				 * Let everything know
 				 */
@@ -702,18 +701,19 @@ class Model {
 					return true;
 				}
 				
-				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
+				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {					
 					$table1 = "\$connect $matched $this->_table";
 					$table2 = "\$connect $this->_table $matched";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
 					
-					if($plural) foreach($args as $id) {
+					foreach($args as $id) {
 						$delete = array(
 							"\$".$this->_table.'_id' => (string) $this->id,
 							"\$".$matched.'_id' => (string) $id,
 						);
+
 						$this->_connection->delete($use, $delete);
 					}
 					
