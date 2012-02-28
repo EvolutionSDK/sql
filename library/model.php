@@ -794,7 +794,7 @@ class ModelExtensionAccess {
 	}
 
 	public function __isset($var) {
-		$metod = 'modelIsset';
+		$method = 'modelIsset';
 		if(method_exists($this->extension, $method))
 			return $this->extension->$method($this->model, $var);
 	}
