@@ -437,7 +437,7 @@ class Model {
 			$args[0] = $args[0]->id;
 
 		$func = strtolower($func);
-		$methods = array('get', 'link', 'unlink');
+		$methods = array('get', 'link', 'unlink', 'haslink');
 		foreach($methods as $m) if($m == substr($func, 0, strlen($m))) {
 			$search = substr($func, strlen($m));
 			$method = $m;
@@ -719,6 +719,61 @@ class Model {
 					
 					$this->save();
 					return true;
+				}				
+			break;
+			case 'haslink':
+				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
+					if($plural) foreach($args[0] as $id) {
+						$where =  array(
+							"\$".$this->_table.'_id' => $this->id,
+							"id" => $id
+						);
+						
+						if($this->_connection->select($matched, $where)->row())
+							return true;
+						else return false;
+					}
+					
+					else if(!$plural) {
+						$where = array(
+							"\$".$this->_table.'_id' => $this->id,
+							"id" => $args[0]
+						);
+
+						if($this->_connection->select($matched, $where)->row())
+							return true;
+						else return false;
+					}
+				}
+				
+				else if(isset($relation_tables['o']) && in_array($matched, $relation_tables['o'])) {
+					$where = array(
+						"\$".$matched.'_id' => $args[0],
+						"id" => $this->id
+					);
+
+					if($this->_connection->select($this->_table, $where)->row())
+						return true;
+					else return false;
+				}
+				
+				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {					
+					$table1 = "\$connect $matched $this->_table";
+					$table2 = "\$connect $this->_table $matched";
+					
+					if($this->_exists($table1)) $use = $table1;
+					else if($this->_exists($table2)) $use = $table2;
+					
+					foreach($args as $id) {
+						$where = array(
+							"\$".$this->_table.'_id' => (string) $this->id,
+							"\$".$matched.'_id' => (string) $id,
+						);
+
+						if($this->_connection->select($use, $where)->row())
+							return true;
+						else return false;
+					}
 				}				
 			break;
 			default:

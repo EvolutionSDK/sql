@@ -495,6 +495,28 @@ class ListObj implements \Iterator, \Countable {
 		$paging = $this->paging();
 		return max(0, min($paging->length, $paging->items - ($paging->page - 1) * $paging->length));
 	}
+
+	/**
+	 * Checks for specific connections
+	 * @author Kelly Lauren Summer Becker
+	 */
+	public function m2mConnection($map) {
+		if($map instanceof Model);
+		else $map = e::map($map);
+
+		$table = $map->__getTable();
+		$id = $map->id;
+
+		$table1 = "\$connect $table $this->_table";
+		$table2 = "\$connect $this->_table $table";
+		$table3 = "\$connect $this->_table";
+					
+		if($this->_exists($table1)) $use = $table1;
+		else if($this->_exists($table2)) $use = $table2;
+		else if($this->_exists($table3)) { $use = $table3; $same = true; }
+
+		return $this->m2m($use, (isset($same) ? 1 : $table), $id);
+	}
 	
 	public function _run_query($count = false, $extra = false) {
 		if($count === 'debug') {
