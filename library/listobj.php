@@ -619,7 +619,7 @@ class ListObj implements \Iterator, \Countable {
 		}
 		
 		$pp = array();
-		list($bundle, $model) = explode('.', $this->_table);
+		list($bundle, $model) = explode('.', strtolower($this->_table));
 		$model = "get".ucwords($this->_tb_singular);
 		while($row = $results->row()) {
 
@@ -750,6 +750,14 @@ class ListObj implements \Iterator, \Countable {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Ignore uninstantiated Functions
+	 * @author Kelly Becker
+	 */
+	public final function __call($method, $args) {
+		return $this;
 	}
 
 }
