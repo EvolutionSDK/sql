@@ -707,6 +707,7 @@ class ListObj implements \Iterator, \Countable {
 				$current = array();
 			}
 			$current[] = $item;
+			$index++;
 		}
 		if(isset($current)) {
 			$return[] = $current;					
