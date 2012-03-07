@@ -690,6 +690,31 @@ class ListObj implements \Iterator, \Countable {
 	}
 
 	/**
+	 * Return sets of objects
+	 *
+	 * @author Robbie Trencheny
+	 *
+	 */
+	public function setsOf($number) {
+		$all = $this->all();
+		$return = array();
+		$index = 0;
+		foreach($all as $item) {
+			if($index % $number === 0) {
+				if(isset($current)) {
+					$return[] = $current;					
+				}
+				$current = array();
+			}
+			$current[] = $item;
+		}
+		if(isset($current)) {
+			$return[] = $current;					
+		}
+		return $return;
+	}
+
+	/**
 	 * Get first record
 	 */
 	public function first() {
