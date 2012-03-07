@@ -497,6 +497,22 @@ class ListObj implements \Iterator, \Countable {
 	}
 
 	/**
+	 * Checks for hasOne connections
+	 * @author Nate Ferrero
+	 */
+	public function hasOne($map) {
+		if($map instanceof Model);
+		else $map = e::map($map);
+
+		$table = $map->__getTable();
+		$id = $map->id;
+
+		$column = '$' . $table . '_id';
+
+		return $this->condition($column, $id);
+	}
+
+	/**
 	 * Checks for specific connections
 	 * @author Kelly Lauren Summer Becker
 	 */
