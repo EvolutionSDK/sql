@@ -219,7 +219,7 @@ class Model {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __destruct() {
-		if($this->_modified) $this->save();
+		if($this->_modified === true) $this->save();
 	}
 
 	/**
