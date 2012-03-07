@@ -55,11 +55,11 @@ class SQLBundle {
 					$extension->_tableStructure($this->bundle.'.'.$table, $relations);
 			}
 
-			if(!is_array($relations)) throw new \Exception("Invalid YAML Config Error in table $table in file $file");
+			if(!is_array($relations)) throw new Exception("Invalid YAML configuration in table `$table` in file `$file`");
 			foreach($relations as $kind => $values) {
 				if($kind == 'fields' || $kind == 'singular' || $kind == 'plural' || $kind == 'extensions') continue;
 				if(!is_array($values))
-					dump($values);
+					throw new Exception("Invalid configuration `$kind: $values` in table `$table` in file `$file`");
 				foreach($values as $key=>$val) {
 					if(strpos($val, '.')) continue;
 					
