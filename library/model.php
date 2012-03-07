@@ -442,6 +442,11 @@ class Model {
 			$search = substr($func, strlen($m));
 			$method = $m;
 			if(strtolower($search === 'generic')) {
+				if(strpos($originalModel, ':') !== false) {
+					$originalModel = e::map($originalModel);
+					$args[0] = $originalModel->id;
+				}
+
 				if(!($originalModel instanceof Model))
 					throw new Exception('Cannot use link/unlinkGeneric without passing an instance of `Bundles\\SQL\\Model`');
 				else
