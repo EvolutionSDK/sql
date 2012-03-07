@@ -515,10 +515,11 @@ class Model {
 				$plural = false;
 				$found = true;
 
-
-
-				if($bundle !== array_shift(explode('.', $table)) || $model !== $singular_w)
-					{ unset($plural, $bundle, $model); $found = false; }
+				$xtable = explode('.', $table);
+				if($bundle !== array_shift($xtable) || $model !== $singular_w) {
+					unset($plural, $bundle, $model);
+					$found = false;
+				}
 			}
 
 			if(!isset($found)) $found = false;

@@ -326,9 +326,9 @@ class Connection {
 			if(!isset(Bundle::$db_structure[$table])) return false;
 
 			$array = Bundle::$db_structure[$table]['fields'];
-			if($array['id'] != '_supress') $array['id'] = 'number';
-			if($array['created_timestamp'] != '_supress') $array['created_timestamp'] = 'date';
-			if($array['updated_timestamp'] != '_supress') $array['updated_timestamp'] = 'date';
+			if(!isset($array['id']) || $array['id'] != '_supress') $array['id'] = 'number';
+			if(!isset($array['created_timestamp']) || $array['created_timestamp'] != '_supress') $array['created_timestamp'] = 'date';
+			if(!isset($array['updated_timestamp']) || $array['updated_timestamp'] != '_supress') $array['updated_timestamp'] = 'date';
 
 			foreach($array as $key => &$column) {
 				$column = null;
