@@ -824,6 +824,16 @@ class ListObj implements \Iterator, \Countable {
 		return $this;
 	}
 
+	/**
+	 * Find the right table
+	 * @author Kelly Becker
+	 */
+	private function _exists($table = false) {
+		$table = $table ? $table : $this->_table;
+		if(!e::sql($this->_connection)->query("SHOW TABLES LIKE '$table'")->row()) return false;
+		else return true;
+	}
+
 }
 
 
