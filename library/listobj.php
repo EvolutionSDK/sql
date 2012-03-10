@@ -64,6 +64,12 @@ class ListObj implements \Iterator, \Countable {
 	
 	protected $_tb_singular;
 	protected $_tb_plural;
+
+	/**
+	 * Virtual list models
+	 * @author Nate Ferrero
+	 */
+	protected $_models = array();
 	
 	/**
 	 * List constructor
@@ -666,6 +672,14 @@ class ListObj implements \Iterator, \Countable {
 			
 			$pp[] = $this->_custom_query ? $row : e::$$bundle->$model($row['id']);
 		}
+
+		/**
+		 * Include virtual models
+		 * @author Nate Ferrero
+		 */
+		foreach($this->_models as $model) {
+			$pp[] = $model;
+		}
 		
 		$this->_results = $pp;
 		if($count === false)
@@ -687,6 +701,14 @@ class ListObj implements \Iterator, \Countable {
 			$return[] = $callback($result);
 
 		return $return;
+	}
+
+	/**
+	 * Include a model in the virtual list
+	 * @author Nate Ferrero
+	 */
+	public function __includeModel($model) {
+		$this->_models[] = $model;
 	}
 
 	/**

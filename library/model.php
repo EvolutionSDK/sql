@@ -13,6 +13,7 @@ class Model {
 	private $_table;
 	private $_bundle;
 	private $_name;
+	private $_virtual = false;
 
 	/**
 	 * Cache and used memory
@@ -32,9 +33,25 @@ class Model {
 	private $_extensionHandler;
 
 	/**
-	 * Has the model bee modified
+	 * Has the model been modified
 	 */
 	private $_modified = false;
+
+	/**
+	 * Make virtual
+	 * @author Nate Ferrero
+	 */
+	public function __makeVirtual() {
+		$this->_virtual = true;
+	}
+
+	/**
+	 * Check if virtual
+	 * @author Nate Ferrero
+	 */
+	public function __isVirtual() {
+		return $this->_virtual;
+	}
 	
 	/**
 	 * Get table
@@ -375,6 +392,13 @@ class Model {
 		}
 
 		/**
+		 * Disable save if virtual
+		 * @author Nate Ferrero
+		 */
+		if($this->_virtual)
+			return;
+
+		/**
 		 * If nothing was modified dont spend memory running the query
 		 */
 		if(!$this->_modified && $data !== true) return false;
@@ -412,6 +436,14 @@ class Model {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function delete() {
+
+		/**
+		 * Disable delete if virtual
+		 * @author Nate Ferrero
+		 */
+		if($this->_virtual)
+			return;
+		
 		if(isset($this->id)) {
 			
 			// Get the map
