@@ -174,7 +174,7 @@ class ListObj implements \Iterator, \Countable {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function join($type = 'LEFT', $use, $cond) {
-		$this->_join = " $type JOIN `$use` ON $cond";
+		$this->_join .= " $type JOIN `$use` ON $cond";
 		
 		return $this;
 	}
