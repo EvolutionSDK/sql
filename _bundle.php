@@ -22,6 +22,7 @@ class InvalidRequestException extends Exception {
 class Bundle {
 	
 	public static $db_structure = array();
+	public static $connection_flags = array();
 	public static $changed = false;
 	
 	private $connections = array();
@@ -33,6 +34,13 @@ class Bundle {
 
 		// SQL Init event
 		e::$events->sql_init();
+
+		/**
+		 * Check flags
+		 * @author Nate Ferrero
+		 */
+		if(isset($_GET['--sql-flags']))
+			dump(Bundle::$connection_flags);
 	}
 	
 	public function __initBundle() {
@@ -152,6 +160,8 @@ class Bundle {
 			 * Create Many to Many relationship
 			 */
 			if(isset($config['manyToMany'])) foreach($config['manyToMany'] as $tbl) {
+				if(is_array($tbl))
+					dump($tbl);
 				self::$db_structure[$tbl]['manyToMany'][] = $table;
 			}
 			

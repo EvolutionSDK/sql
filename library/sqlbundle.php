@@ -61,9 +61,48 @@ class SQLBundle {
 				if(!is_array($values))
 					throw new Exception("Invalid configuration `$kind: $values` in table `$table` in file `$file`");
 				foreach($values as $key=>$val) {
-					if(strpos($val, '.')) continue;
-					
-					$values[$key] = $this->bundle.'.'.$val;
+
+					/**
+					 * Check for array connection definitions
+					 * @author Nate Ferrero
+					 */
+					$flags = null;
+					if(is_array($val)) {
+						if(empty($val['model']))
+							throw new Exception("Array connection without `model` specified in table `$table` in file `$file`");
+
+						/**
+						 * Get connection flags
+						 * @author Nate Ferrero
+						 */
+						if(!empty($val['flags']))
+							$flags = $val['flags'];
+
+						/**
+						 * Restore model
+						 */
+						$val = $val['model'];
+					}
+
+					if(strpos($val, '.') === false)
+						$val = $this->bundle.'.'.$val;
+
+					/**
+					 * Save connection flags
+					 * @author Nate Ferrero
+					 */
+					if(!is_null($flags)) {
+						$a = $this->bundle.'.'.$table;
+						$b = $val;
+						Bundle::$connection_flags["$a-^-$b"] = array();
+						Bundle::$connection_flags["$b-^-$a"] = array();
+						foreach($flags as $fkey => $fvalue) {
+							Bundle::$connection_flags["$a-^-$b"][$fkey] = $fvalue;
+							Bundle::$connection_flags["$b-^-$a"][$fkey] = $fvalue;
+						}
+					}
+
+					$values[$key] = $val;
 				}
 				
 				$relations[$kind] = $values;
@@ -77,7 +116,6 @@ class SQLBundle {
 		 */
 		foreach($sql as $table=>$val) Bundle::$db_structure[$this->bundle.'.'.$table] = $val;
 		foreach($sql as $table=>$val) $this->local_structure[$table] = $val;
-		
 	}
 	
 	/**
