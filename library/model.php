@@ -91,7 +91,7 @@ class Model {
 		$flags = (int) $flags;
 		if(isset(Bundle::$connection_flags[$connection])) {
 			foreach(Bundle::$connection_flags[$connection] as $flag => $label)
-				$this->_flags[$label] = ($flag & $flags) > 0 ? true : false;
+				$this->_flags[$label] = (pow(2, $flag) & $flags) > 0 ? true : false;
 		}
 	}
 	
@@ -388,11 +388,10 @@ class Model {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function get_array() {
-		return $this->_data;
-	}
-	public function getArray() {
-		return $this->get_array();
+	public function __toArray() {
+		$data = $this->_data;
+		$data['_flags'] = $this->_flags;
+		return $data;
 	}
 
 	/**
@@ -601,33 +600,72 @@ class Model {
 		 */
 		if(isset($found) && $found == false) throw new NoMatchException("`$search` could not be be mapped to a table when calling `$func(...)` on the `$this->_table` model.");
 		
+		/**
+		 * Handle flags on connections
+		 * @author Nate Ferrero
+		 */
+		$flags = 0;
+		$last = end($args);
+		if(is_string($last) && !is_numeric($last)) {
+			$tmp = explode(' ', array_pop($args));
+			$fconn = $this->_table.'-v-'.$matched;
+			if(!isset(Bundle::$connection_flags[$fconn]))
+				throw new Exception("Trying to use connection flags on the `$this->_table` &harr; `$matched`
+					connection when no flags are specified.");
+			foreach($tmp as $flag) {
+				if(!isset(Bundle::$connection_flags[$fconn][$flag]))
+					throw new Exception("Trying to use an undefined connection flag `$flag` on the `$this->_table` &harr; `$matched`
+					connection.");
+				$flags |= pow(2, Bundle::$connection_flags[$fconn][$flag]);
+			}
+		}
+
 		switch($method) {
 			case 'get':
-				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) 
-					$conds = array("\$".$this->_table.'_id' => (string) $this->id);
-				
+				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
+
+					/**
+					 * Ensure flags only on many to many
+					 * @author Nate Ferrero
+					 */
+					if($flags)
+						throw new Exception("Using flags on the `$this->_table` &harr; `$matched` connection that is not many-to-many.");
+
+					$conds = array('$'.$this->_table.'_id' => (string) $this->id);
+				}
+
 				else if(isset($relation_tables['o']) && in_array($matched, $relation_tables['o'])) {
-					$var = "\$".$matched.'_id';
+
+					/**
+					 * Ensure flags only on many to many
+					 * @author Nate Ferrero
+					 */
+					if($flags)
+						throw new Exception("Using flags on the `$this->_table` &harr; `$matched` connection that is not many-to-many.");
+
+					$var = '$'.$matched.'_id';
 					$conds = array('id' => (string) $this->$var);
 				}
 				
 				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
-					$table1 = "\$connect $matched $this->_table";
-					$table2 = "\$connect $this->_table $matched";
-					$table3 = "\$connect $this->_table";
+					$table1 = '$connect '."$matched $this->_table";
+					$table2 = '$connect '."$this->_table $matched";
+					$table3 = '$connect '."$this->_table";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
 					else if($this->_exists($table3)) { $use = $table3; $same = true; }
 
+
+
 					if($plural) {
 						$return = new ListObj($matched, $this->_connection->slug);
-						return $return->m2m($use, (isset($same) ? 1 : $this->_table), $this->id);
+						return $return->m2m($use, (isset($same) ? 1 : $this->_table), $this->id, $flags);
 					}
 					
 					else if(!$plural) {
 						$return = new ListObj($matched, $this->_connection->slug);
-						$return = $return->m2m($use, $this->_table, $this->id);
+						$return = $return->m2m($use, $this->_table, $this->id, $flags);
 						return $return;
 					}
 					
@@ -654,21 +692,31 @@ class Model {
 			case 'link':
 			
 				if(!$args[0]) return false;
-			
+
 				/**
 				 * Let everything know
+				 * @todo Account for simultaneous linking of multiple models
+				 * @author Nate Ferrero
 				 */
 				e::$events->deferred_register('sql_model_event', 'linked', $this->__map(), $matched.':'.$args[0]);
 				
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
-					if($plural) foreach($args[0] as $id) {
-						$update =  array("\$".$this->_table.'_id' => (string) $this->id);
+
+					/**
+					 * Ensure flags only on many to many
+					 * @author Nate Ferrero
+					 */
+					if($flags)
+						throw new Exception("Using flags on the `$this->_table` &harr; `$matched` connection that is not many-to-many.");
+
+					if($plural) foreach($args as $id) {
+						$update =  array('$'.$this->_table.'_id' => (string) $this->id);
 						$where = "WHERE `id` = '".$id."'";
 						$this->_connection->update($matched, $update, $where);
 					}
 					
 					else if(!$plural) {
-						$update =  array("\$".$this->_table.'_id' => (string) $this->id);
+						$update =  array('$'.$this->_table.'_id' => (string) $this->id);
 						$where = "WHERE `id` = '".$args[0]."'";
 						$this->_connection->update($matched, $update, $where);
 					}
@@ -678,7 +726,15 @@ class Model {
 				}
 				
 				else if(isset($relation_tables['o']) && in_array($matched, $relation_tables['o'])) {
-					$update =  array("\$".$matched.'_id' => (string) $args[0]);
+					
+					/**
+					 * Ensure flags only on many to many
+					 * @author Nate Ferrero
+					 */
+					if($flags)
+						throw new Exception("Using flags on the `$this->_table` &harr; `$matched` connection that is not many-to-many.");
+
+					$update =  array('$'.$matched.'_id' => (string) $args[0]);
 					$where = "WHERE `id` = '".$this->id."'";
 					$this->_connection->update($this->_table, $update, $where);
 					
@@ -687,9 +743,9 @@ class Model {
 				}
 				
 				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
-					$table1 = "\$connect $matched $this->_table";
-					$table2 = "\$connect $this->_table $matched";
-					$table3 = "\$connect $this->_table";
+					$table1 = '$connect '."$matched $this->_table";
+					$table2 = '$connect '."$this->_table $matched";
+					$table3 = '$connect '."$this->_table";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
@@ -697,38 +753,73 @@ class Model {
 					
 					if($plural) foreach($args as $id) {
 						if(isset($same)) $insert = array(
-							"\$id_a" => (string) $this->id,
-							"\$id_b" => (string) $id,
+							'$id_a' => (string) $this->id,
+							'$id_b' => (string) $id,
+							'$flags' => $flags
 						);
 						
 						else $insert = array(
-							"\$".$this->_table.'_id' => (string) $this->id,
-							"\$".$matched.'_id' => (string) $id,
-							"\$flags" => $args[1]
+							'$'.$this->_table.'_id' => (string) $this->id,
+							'$'.$matched.'_id' => (string) $id,
+							'$flags' => $flags
 						);
 						
 						try { $this->_connection->insert($use, $insert); }
-						catch(\PDOException $e) { }
+						catch(\PDOException $e) {
+							/**
+							 * Update Flags
+							 * $flags column must be last in the insert!
+							 * @author Nate Ferrero
+							 */
+							$where = '';
+							foreach($insert as $key => $value) {
+								if($key == '$flags') {
+									$insert = array($key => $value);
+									break;
+								} else
+									$where .= ($where == '' ? '' : ' AND ') . "`$key` = $value";
+							}
+							$this->_connection->update($use, $insert, "WHERE $where");
+						}
 					}
 					
 					else if(!$plural) {
 						if(isset($same)) $insert = array(
-							"\$id_a" => (string) $this->id,
-							"\$id_b" => (string) $args[0],
+							'$id_a' => (string) $this->id,
+							'$id_b' => (string) $args[0],
+							'$flags' => $flags
 						);
 						
 						else $insert = array(
-							"\$".$this->_table.'_id' => (string) $this->id,
-							"\$".$matched.'_id' => (string) $args[0],
+							'$'.$this->_table.'_id' => (string) $this->id,
+							'$'.$matched.'_id' => (string) $args[0],
+							'$flags' => $flags
 						);
-						
+
 						try { $this->_connection->insert($use, $insert); }
-						catch(\PDOException $e) { }
+						catch(\PDOException $e) {
+							/**
+							 * Update Flags
+							 * $flags column must be last in the insert!
+							 * @author Nate Ferrero
+							 */
+							$where = '';
+							foreach($insert as $key => $value) {
+								if($key == '$flags') {
+									$insert = array($key => $value);
+									break;
+								} else
+									$where .= ($where == '' ? '' : ' AND ') . "`$key` = $value";
+							}
+							$this->_connection->update($use, $insert, "WHERE $where");
+						}
 					}
 					
 					$this->save();
 					return true;
-				}				
+				}
+
+				return false;
 			break;
 			case 'unlink':
 				/**
@@ -738,13 +829,13 @@ class Model {
 			
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args[0] as $id) {
-						$update =  array("\$".$this->_table.'_id' => (string) 0);
+						$update =  array('$'.$this->_table.'_id' => (string) 0);
 						$where = "WHERE `id` = '".$id."'";
 						$this->_connection->update($matched, $update, $where);
 					}
 					
 					else if(!$plural) {
-						$update =  array("\$".$this->_table.'_id' => (string) 0);
+						$update =  array('$'.$this->_table.'_id' => (string) 0);
 						$where = "WHERE `id` = '".$args[0]."'";
 						$this->_connection->update($matched, $update, $where);
 					}
@@ -754,7 +845,7 @@ class Model {
 				}
 				
 				else if(isset($relation_tables['o']) && in_array($matched, $relation_tables['o'])) {
-					$update =  array("\$".$matched.'_id' => (string) 0);
+					$update =  array('$'.$matched.'_id' => (string) 0);
 					$where = "WHERE `id` = '".$this->id."'";
 					$this->_connection->update($this->_table, $update, $where);
 					
@@ -762,17 +853,17 @@ class Model {
 					return true;
 				}
 				
-				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {					
-					$table1 = "\$connect $matched $this->_table";
-					$table2 = "\$connect $this->_table $matched";
+				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
+					$table1 = '$connect '."$matched $this->_table";
+					$table2 = '$connect '."$this->_table $matched";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
 					
 					foreach($args as $id) {
 						$delete = array(
-							"\$".$this->_table.'_id' => (string) $this->id,
-							"\$".$matched.'_id' => (string) $id,
+							'$'.$this->_table.'_id' => (string) $this->id,
+							'$'.$matched.'_id' => (string) $id,
 						);
 
 						$this->_connection->delete($use, $delete);
@@ -780,13 +871,13 @@ class Model {
 					
 					$this->save();
 					return true;
-				}				
+				}
 			break;
 			case 'haslink':
 				if(isset($relation_tables['y']) && in_array($matched, $relation_tables['y'])) {
 					if($plural) foreach($args[0] as $id) {
 						$where =  array(
-							"\$".$this->_table.'_id' => $this->id,
+							'$'.$this->_table.'_id' => $this->id,
 							"id" => $id
 						);
 						
@@ -797,7 +888,7 @@ class Model {
 					
 					else if(!$plural) {
 						$where = array(
-							"\$".$this->_table.'_id' => $this->id,
+							'$'.$this->_table.'_id' => $this->id,
 							"id" => $args[0]
 						);
 
@@ -809,7 +900,7 @@ class Model {
 				
 				else if(isset($relation_tables['o']) && in_array($matched, $relation_tables['o'])) {
 					$where = array(
-						"\$".$matched.'_id' => $args[0],
+						'$'.$matched.'_id' => $args[0],
 						"id" => $this->id
 					);
 
@@ -818,24 +909,24 @@ class Model {
 					else return false;
 				}
 				
-				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {					
-					$table1 = "\$connect $matched $this->_table";
-					$table2 = "\$connect $this->_table $matched";
+				else if(isset($relation_tables['x']) && in_array($matched, $relation_tables['x'])) {
+					$table1 = '$connect '."$matched $this->_table";
+					$table2 = '$connect '."$this->_table $matched";
 					
 					if($this->_exists($table1)) $use = $table1;
 					else if($this->_exists($table2)) $use = $table2;
 					
 					foreach($args as $id) {
 						$where = array(
-							"\$".$this->_table.'_id' => (string) $this->id,
-							"\$".$matched.'_id' => (string) $id,
+							'$'.$this->_table.'_id' => (string) $this->id,
+							'$'.$matched.'_id' => (string) $id,
 						);
 
 						if($this->_connection->select($use, $where)->row())
 							return true;
 						else return false;
 					}
-				}				
+				}
 			break;
 			default:
 				/**
@@ -844,7 +935,7 @@ class Model {
 				 * This is to prevent weird bugs until we get LHTML scope figured out
 				 */
 				return $this->$func;
-				throw new InvalidRequestException("`$method` is not a valid request as `$func(...)` on the `$this->_table` model. valid requests are `get`, `link`, and `unlink`");
+				throw new InvalidRequestException("`$method` is not a valid request as `$func(...)` on the `$this->_table` model. Valid requests are `get`, `link`, `unlink`, and `haslink`.");
 			break;
 		}
 		

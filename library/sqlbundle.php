@@ -96,9 +96,13 @@ class SQLBundle {
 						$b = $val;
 						Bundle::$connection_flags["$a-^-$b"] = array();
 						Bundle::$connection_flags["$b-^-$a"] = array();
+						Bundle::$connection_flags["$a-v-$b"] = array();
+						Bundle::$connection_flags["$b-v-$a"] = array();
 						foreach($flags as $fkey => $fvalue) {
 							Bundle::$connection_flags["$a-^-$b"][$fkey] = $fvalue;
 							Bundle::$connection_flags["$b-^-$a"][$fkey] = $fvalue;
+							Bundle::$connection_flags["$a-v-$b"][$fvalue] = $fkey;
+							Bundle::$connection_flags["$b-v-$a"][$fvalue] = $fkey;
 						}
 					}
 

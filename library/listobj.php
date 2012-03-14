@@ -193,7 +193,7 @@ class ListObj implements \Iterator, \Countable {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function m2m($use, $join, $id) {
+	public function m2m($use, $join, $id, $flags = 0) {
 
 		$tmp = explode(' ', $use);
 		array_shift($tmp);
@@ -201,6 +201,10 @@ class ListObj implements \Iterator, \Countable {
 		
 		if(is_numeric($join)) $cond = "`$this->_table`.`id` = `$use`.`\$id_b`";
 		else $cond = "`$this->_table`.`id` = `$use`.`\$".$this->_table."_id`";
+		
+		if($flags > 0) {
+			$cond .= " AND `$use`.\$flags & $flags = $flags";
+		}
 		
 		$this->join('LEFT', $use, $cond);
 		if(is_numeric($join)) $this->condition("`$use`.`\$id_a` =", $id);
