@@ -25,6 +25,11 @@ class ListObj implements \Iterator, \Countable {
 	 * Extension Handler
 	 */
 	private $_extensionHandler;
+
+	/**
+	 * m2m record connection
+	 */
+	protected $_m2m;
 	
 	/**
 	 * Results
@@ -189,6 +194,10 @@ class ListObj implements \Iterator, \Countable {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function m2m($use, $join, $id) {
+
+		$tmp = explode(' ', $use);
+		array_shift($tmp);
+		$this->_m2m = implode('-^-', $tmp);
 		
 		if(is_numeric($join)) $cond = "`$this->_table`.`id` = `$use`.`\$id_b`";
 		else $cond = "`$this->_table`.`id` = `$use`.`\$".$this->_table."_id`";
@@ -670,7 +679,16 @@ class ListObj implements \Iterator, \Countable {
 			if(!isset(e::$$bundle))
 				throw new Exception("Bundle `$bundle` is not installed");
 			
-			$pp[] = $this->_custom_query ? $row : e::$$bundle->$model($row['id']);
+			$ppm = $this->_custom_query ? $row : e::$$bundle->$model($row['id']);
+
+			/**
+			 * Set Flags
+			 * @author Nate Ferrero
+			 */
+			if(isset($row['$flags']))
+				$ppm->__setFlags($this->_m2m, $row['$flags']);
+
+			$pp[] = $ppm;
 		}
 
 		/**
@@ -697,8 +715,12 @@ class ListObj implements \Iterator, \Countable {
 		if(!is_callable($callback)) return $this->_results;
 
 		$return = array();
+		/**
+		 * Added flags
+		 * @author Nate Ferrero
+		 */
 		foreach($this->_results as $result)
-			$return[] = $callback($result);
+			$return[] = $callback($result, $result->__getFlags());
 
 		return $return;
 	}

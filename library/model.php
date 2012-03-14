@@ -1,6 +1,6 @@
 <?php
 
-namespace bundles\SQL;
+namespace Bundles\SQL;
 use Exception;
 use e;
 
@@ -14,6 +14,8 @@ class Model {
 	private $_bundle;
 	private $_name;
 	private $_virtual = false;
+	private $_flagConnection = null;
+	private $_flags = array();
 
 	/**
 	 * Cache and used memory
@@ -73,6 +75,25 @@ class Model {
 	public function __getBundle() {
 		return $this->_bundle;
 	}
+
+	/**
+	 * Get flags
+	 */
+	public function __getFlags() {
+		return $this->_flags;
+	}
+
+	/**
+	 * Get flags
+	 */
+	public function __setFlags($connection, $flags) {
+		$this->_flagConnection = $connection;
+		$flags = (int) $flags;
+		if(isset(Bundle::$connection_flags[$connection])) {
+			foreach(Bundle::$connection_flags[$connection] as $flag => $label)
+				$this->_flags[$label] = ($flag & $flags) > 0 ? true : false;
+		}
+	}
 	
 	/**
 	 * Get a unique reference
@@ -108,6 +129,8 @@ class Model {
 	
 	/**
 	 * Feed entry
+	 * @todo Deprecate or re-create feed
+	 * @author Nate Ferrero
 	 */
 	public function feedEntry($name, &$vars, &$scope) {
 		
@@ -853,6 +876,18 @@ class ModelExtensionHandler {
 
 	public function __get($extension) {
 		$extension = strtolower($extension);
+
+		/**
+		 * Flags
+		 * @author Nate Ferrero
+		 */
+		if($extension == 'flags')
+			return $this->model->__getFlags();
+
+		/**
+		 * Load extension
+		 * @author Nate Ferrero
+		 */
 		if(!isset($this->extensions[$extension]))
 			$this->extensions[$extension] = new ModelExtensionAccess($this->model, Bundle::extension($extension));
 		return $this->extensions[$extension];
