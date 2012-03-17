@@ -594,6 +594,13 @@ class Model {
 				break;
 			}
 		}
+
+		/**
+		 * Ensure there was a match
+		 * @author Nate Ferrero
+		 */
+		if(empty($matched))
+			$found = false;
 				
 		/**
 		 * If no results stop everything

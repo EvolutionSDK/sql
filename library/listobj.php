@@ -427,7 +427,6 @@ class ListObj implements \Iterator, \Countable {
 		
 		$this->_on_page = $page; $page --;
 		$this->limit($page * $this->_page_length, $this->_page_length);
-		
 		return $this;
 	}
 	
