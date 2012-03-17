@@ -282,7 +282,7 @@ class Model {
 		/**
 		 * Check if the field is set
 		 */
-		if(isset($this->_data[$field]))
+		if(array_key_exists($field, $this->_data))
 			return true;
 		
 		if($field == 'updated_timestamp') throw new Exception('wHTA');
@@ -320,7 +320,7 @@ class Model {
 		/**
 		 * Local data first
 		 */
-		if(isset($this->_data[$field]))
+		if(array_key_exists($field, $this->_data))
 			return $this->_data[$field];
 
 		/**
