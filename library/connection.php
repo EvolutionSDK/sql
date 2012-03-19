@@ -97,7 +97,7 @@ class Connection {
 		
 		if($this->_exists($table1)) $connection = $table1;
 		else if($this->_exists($table2)) $connection = $table2;
-		else throw new Exception("The manyToMany connection table for `$t1` and `$t2` was not created please run `?_build_sql`");
+		else throw new Exception("The manyToMany connection table for `$t1` and `$t2` was not created please run build sql");
 
 		return $connection;
 	}
