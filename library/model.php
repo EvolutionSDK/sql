@@ -222,7 +222,7 @@ class Model {
 				if(isset(\Bundles\SQL\Bundle::$db_structure[$this->_table]['fields']['slug'])) {
 					// check if the slug field is available
 					self::$_cache[$table][$id] = $this->_connection->select($table, "WHERE `slug` = '$id'")->row();
-					$this->data =& self::$_cache[$table][$id];
+					$this->_data =& self::$_cache[$table][$id];
 				} else {
 					throw new Exception("Trying to load a row from the table [$this->_table] with slug[$id], but there is no slug column on this table.");
 				}
