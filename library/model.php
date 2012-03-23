@@ -118,62 +118,6 @@ class Model {
 			break;
 		}
 	}
-	
-	/**
-	 * Get HTML Link
-	 */
-	public function __getHTMLLink() {
-		$ex = explode('.', $this->_table);
-		return '<a href="/test/nate/'.array_pop($ex).'/'.$this->id.'">'.$this->title.'</a>';
-	}
-	
-	/**
-	 * Feed entry
-	 * @todo Deprecate or re-create feed
-	 * @author Nate Ferrero
-	 */
-	public function feedEntry($name, &$vars, &$scope) {
-		
-		// Loop through each var
-		foreach($vars as $original => $value) {
-			
-			// Get various attributes
-			$filters = explode('|', $original);
-			$var = array_shift($filters);
-			$properties = explode('.', $var);
-			$var = array_shift($properties);
-			
-			// Check for var in scope
-			if(!isset($scope[$var]))
-				continue;
-			
-			// Get property or format model
-			$current = $scope[$var];
-			
-			// Dive into scope
-			foreach($properties as $prop) {
-				$current = $current->$prop;
-			}
-			
-			// Get model links
-			if($current instanceof Model)
-				$current = $current->__getHTMLLink();
-			
-			// Process filters
-			foreach($filters as $filter) {
-				switch($filter) {
-					case 'currency':
-						$current = '$' . number_format($current, 2);
-				}
-			}
-			
-			// Save the variable
-			$vars[$original] = $current;
-		}
-		
-		// Show this story
-		return true;
-	}
 
 	/**
 	 * Initialize the model
@@ -443,6 +387,8 @@ class Model {
 		else {
 			$save['created_timestamp'] = date("Y-m-d H:i:s");
 			$this->_data['id'] = (int) $this->_connection->insert($this->_table, $save)->insertId();
+			if($this->_data['id'] === 0)
+				throw new Exception("Model insert failed on `$this->_table`: ");
 		}
 		
 		/**

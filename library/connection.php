@@ -128,6 +128,13 @@ class Connection {
 			if(is_array($vsprintf)) $sql = vsprintf($sql, $vsprintf);
 			else if($vsprintf !== false) $sql = vsprintf($sql, $vsprintf);
 		}
+
+		/**
+		 * Output Queries if desired
+		 * @author Nate Ferrero
+		 */
+		if(isset($_GET['--sql-debug']))
+			echo '<div style="padding: 1em;">'.htmlspecialchars($sql).'</div>';
 		
 		/**
 		 * Start the timer
