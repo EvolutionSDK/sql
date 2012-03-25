@@ -27,7 +27,7 @@ class Bundle {
 	
 	private $connections = array();
 
-	public function _on_framework_loaded() {
+	public function _on_framework_database() {
 		
 		// Add manager
 		e::configure('manage')->activeAddKey('bundle', __NAMESPACE__, 'sql');
