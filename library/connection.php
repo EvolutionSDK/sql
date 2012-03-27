@@ -305,7 +305,7 @@ class Connection {
 	
 	public function replace($table, $array) {
 		$insertfragment = $this->_fragment($array);
-		return $this->query("REPLACE INTO $table SET $insertfragment");
+		return $this->query("REPLACE INTO `$table` SET $insertfragment");
 	}
 	/**
 	 * Delete a row by ID in a database

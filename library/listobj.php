@@ -75,6 +75,12 @@ class ListObj implements \Iterator, \Countable {
 	 * @author Nate Ferrero
 	 */
 	protected $_models = array();
+
+	/**
+	 * Joined tables array
+	 * @author Kelly Becker
+	 */
+	protected $_join_table = array();
 	
 	/**
 	 * List constructor
@@ -116,6 +122,22 @@ class ListObj implements \Iterator, \Countable {
 	 */
 	protected function initialize() {
 		
+	}
+
+	/**
+	 * Returns the table name
+	 * @author Kelly Becker
+	 */
+	public function __getTable() {
+		return $this->_table;
+	}
+
+	/**
+	 * Returns the last join table
+	 * @author Kelly Becker
+	 */
+	public function __getJoinTable() {
+		return array_pop($this->_join_table);
 	}
 	
 	/**
@@ -179,6 +201,10 @@ class ListObj implements \Iterator, \Countable {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function join($type = 'LEFT', $use, $cond) {
+		/**
+		 * @todo more join table support
+		 */
+		$this->_join_table[] = $use;
 		$this->_join .= " $type JOIN `$use` ON $cond";
 		
 		return $this;

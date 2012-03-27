@@ -716,7 +716,7 @@ class Model {
 							'$'.$matched.'_id' => (string) $id,
 							'$flags' => $flags
 						);
-						
+
 						try { $this->_connection->insert($use, $insert); }
 						catch(\PDOException $e) {
 							/**
@@ -748,9 +748,9 @@ class Model {
 							'$'.$matched.'_id' => (string) $args[0],
 							'$flags' => $flags
 						);
-
-						try { $this->_connection->insert($use, $insert); }
+						try { $this->_connection->replace($use, $insert); }
 						catch(\PDOException $e) {
+
 							/**
 							 * Update Flags
 							 * $flags column must be last in the insert!
@@ -764,7 +764,7 @@ class Model {
 								} else
 									$where .= ($where == '' ? '' : ' AND ') . "`$key` = $value";
 							}
-							$this->_connection->update($use, $insert, "WHERE $where");
+							$this->_connection->replace($use, $insert, "WHERE $where");
 						}
 					}
 					
