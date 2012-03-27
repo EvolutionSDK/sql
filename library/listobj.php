@@ -795,6 +795,21 @@ class ListObj implements \Iterator, \Countable {
 		$this->rewind();
 		return $this->current();
 	}
+
+	/**
+	 * Implode all records with field
+	 * @author Nate Ferrero
+	 */
+	public function implode($field, $separator = ', ') {
+		$out = array();
+		foreach($this->all() as $model) {
+			if(method_exists($model, $field))
+				$out[] = $model->$field();
+			else
+				$out[] = $model->$field;
+		}
+		return implode($separator, $out);
+	}
 	
 	/**
 	 * BEGIN ITERATOR METHODS ----------------------------------------------------------------
