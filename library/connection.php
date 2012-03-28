@@ -1,8 +1,8 @@
 <?php
 
 namespace Bundles\SQL;
-use Exception;
 use PDOException;
+use Exception;
 use PDO;
 use e;
 
@@ -144,14 +144,23 @@ class Connection {
 		/**
 		 * Run Query
 		 */
-		$result = $this->connection->prepare($sql);
-		$result->execute();
+		try {
+			$result = $this->connection->prepare($sql);
+			$result->execute();
+
+			/**
+		 	 * Throw PDOException if an error exists
+		 	 */
+			$errorInfo = $result->errorInfo();
+			if($errorInfo[2] !== NULL) throw new PDOException($errorInfo[2]);
+		}
+
+		catch(PDOException $e) {
+			$e->query = $sql;
+			throw $e;
+		}
 				
-		/**
-		 * Throw PDOException if an error exists
-		 */
-		$errorInfo = $result->errorInfo();
-		if($errorInfo[2] !== NULL) throw new \PDOException($errorInfo[2]);
+		
 		
 		/**
 		 * Stop the timer and return how long the query took
