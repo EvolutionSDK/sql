@@ -52,6 +52,19 @@ class Connection {
 		}
 	
 	}
+
+	/**
+	 * Create a new PDO Connection
+	 * @author Nate Ferrero
+	 * @return PDO Instance
+	 */
+	public function newPDOConnection($url) {
+		$access = $this->_parse_access_url($url, 'dsn');
+		$x = new PDO($access['dsn'], $access['user'], $access['password']);
+		$x->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$x->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+		return $x;
+	}
 	
 	/**
 	 * Checks TimeSync and Potentially Fixes It
