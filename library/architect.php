@@ -281,9 +281,13 @@ class Architect {
 							$key = "ALTER TABLE `$this->table` ADD KEY `$field` ($field)";
 						break;
 						default:
-							if($this->current[$field]['Key'] == 'PRI') 
-								$key = "ALTER TABLE `$this->table` DROP PRIMARY KEY `$field`";
-							else if($this->current[$field]['Key'] !== '') $key = "ALTER TABLE `$this->table` DROP INDEX `$field`";
+							/**
+							 * @todo Don't remove custom indexes that have been added
+							 * @author Nate Ferrero
+							 */
+							//if($this->current[$field]['Key'] == 'PRI') 
+							//	$key = "ALTER TABLE `$this->table` DROP PRIMARY KEY `$field`";
+							//else if($this->current[$field]['Key'] !== '') $key = "ALTER TABLE `$this->table` DROP INDEX `$field`";
 						break;
 					}
 					
@@ -339,7 +343,7 @@ class Architect {
 			$cols[] = "`$field` $type $null $extra $default";
 			
 		}
-		
+
 		if(!empty($prikeys)) $keys[] = 'PRIMARY KEY ('.implode(', ', $prikeys).')';
 		
 		$create[] = implode(', ', $cols);
