@@ -94,7 +94,8 @@ class ListObj implements \Iterator, \Countable {
 		
 		$get_table = Bundle::$db_structure[$this->_table];
 
-		$bundle = array_shift(explode('.',$this->_table));
+		$spec = explode('.',$this->_table);
+		$bundle = array_shift($spec);
 		if(empty($get_table['singular']))
 			throw new Exception("Double check your `singular:` key and value in `$bundle`'s bundle `./configure/sql_structure.yaml` file on the `$table` table");
 		if(empty($get_table['plural']))

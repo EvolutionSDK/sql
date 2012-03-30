@@ -510,7 +510,8 @@ class Model {
 				$plural = true;
 				$found = true;
 
-				if($bundle !== array_shift(explode('.', $table)) || $model !== $plural_w)
+				$spec = explode('.', $table);
+				if($bundle !== array_shift($spec) || $model !== $plural_w)
 					{ unset($plural, $bundle, $model); $found = false; }
 			}
 
