@@ -81,6 +81,11 @@ class ListObj implements \Iterator, \Countable {
 	 * @author Kelly Becker
 	 */
 	protected $_join_table = array();
+
+	/**
+	 * Special features
+	 */
+	protected $_ensure_page_contains_id = null;
 	
 	/**
 	 * List constructor
@@ -155,6 +160,15 @@ class ListObj implements \Iterator, \Countable {
 		
 		// $query $table
 		eval(d);
+	}
+
+	/**
+	 * Ensure that page contains ID
+	 * @author Nate Ferrero
+	 */
+	public function ensurePageContainsID($id) {
+		$this->_ensure_page_contains_id = $id;
+		return $this;
 	}
 	
 	/**
@@ -451,6 +465,19 @@ class ListObj implements \Iterator, \Countable {
 	public function page($page = 1, $length = false) {
 		if($length) $this->_page_length = $length;
 		$page = $page < 1 ? 1 : $page;
+
+		/**
+		 * Check for current page requirement
+		 * @author Nate Ferrero
+		 */
+		if(!empty($this->_ensure_page_contains_id)) {
+			$id = (int) $this->_ensure_page_contains_id;
+			$idList = $this->_run_query('ids');
+			$pos = array_search($id, $idList);
+			if($pos !== false) {
+				$page = floor($pos / $this->_page_length) + 1;
+			}
+		}
 		
 		$this->_on_page = $page; $page --;
 		$this->limit($page * $this->_page_length, $this->_page_length);
@@ -615,12 +642,39 @@ class ListObj implements \Iterator, \Countable {
 		/**
 		 * Process Order Conditions
 		 */
-		if((!$count || $count == 'sum') && count($this->_order_cond) > 0) {
+		if((!$count || $count == 'sum' || $count == 'ids') && count($this->_order_cond) > 0) {
 			$cond .= 'ORDER BY ';
 			foreach($this->_order_cond as $key => $condi) {
 				if(count($this->_order_cond) > 1 && $key != 0) $cond .= ', ';
 				$cond .= $condi.' ';
 			}
+		}
+
+		/**
+		 * Allow getting ID list
+		 * @author Nate Ferrero
+		 */
+		if($count == 'ids') {
+			/**
+			 * Prepare the query to run
+			 */
+			$fields_select = "`$this->_table`.`id`";
+			$query = "SELECT $fields_select FROM $this->_tables_select".($this->_join ? $this->_join : '')." $cond";
+			
+			/**
+			 * Return the query that will be run for debug purposes
+			 */
+			if(isset($debug) && $debug) return $query;
+			
+			/**
+			 * Run query
+			 */
+			$results = e::sql($this->_connection)->query($query)->all();
+			
+			/**
+			 * Return IDs
+			 */
+			return e\array_get_keys($results, 'id');
 		}
 		
 		/**
