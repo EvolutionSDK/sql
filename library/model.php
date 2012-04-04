@@ -390,6 +390,14 @@ class Model {
 			if($this->_data['id'] === 0)
 				throw new Exception("Model insert failed on `$this->_table`: ");
 		}
+
+		/**
+		 * Modify the updated timestamp from mysql
+		 * @author Nate Ferrero
+		 */
+		$row = $this->_connection->select_by_id($this->_table, $this->id)->row();
+		if(isset($row['updated_timestamp']))
+			$this->updated_timestamp = $row['updated_timestamp'];
 		
 		/**
 		 * Let everything know afterward
