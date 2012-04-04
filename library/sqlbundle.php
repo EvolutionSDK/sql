@@ -152,7 +152,7 @@ class SQLBundle {
 		if(empty($this->local_structure)) return false;
 		
 		foreach($this->local_structure as $table=>$relations) {
-			if($search == $table) {
+			if($search == $table && (!isset($relations['plural']) || $relations['plural'] != $search)) {
 				$plural = false;
 				break;
 			}
