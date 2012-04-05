@@ -41,6 +41,8 @@ class Bundle {
 		 */
 		if(isset($_GET['--sql-flags']))
 			dump(Bundle::$connection_flags);
+
+		e::configure('autoload')->activeAddKey('special', 'Bundles\\SQL\\callException', __DIR__ . '/library/sqlbundle.php');
 	}
 	
 	public function __initBundle() {

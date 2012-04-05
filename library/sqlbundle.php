@@ -4,6 +4,8 @@ namespace Bundles\SQL;
 use Exception;
 use e;
 
+class callException extends Exception {}
+
 class SQLBundle {
 	
 	public $bundle;
@@ -136,7 +138,7 @@ class SQLBundle {
 		 */
 		if(method_exists($this, '__callExtend')) {
 			try { return $this->__callExtend($func, $args); }
-			catch(e\AutoLoadException $e) { }
+			catch(callException $e) { }
 		}
 		
 		if(!$this->initialized)
@@ -203,6 +205,32 @@ class SQLBundle {
 		
 		throw new NoMatchException("No method was routed when calling `$func(...)` on the `e::$$this->bundle` bundle.");
 		
+	}
+
+	public function __slugSupport($func, $args, $slug = 'slug') {
+		$func = strtolower($func);
+		if(!is_numeric($args[0]) && is_string($args[0]) && substr($func, 0, 3) == 'get') {
+			
+			$which = substr($func, 3);
+
+			foreach($this->local_structure as $table => $stuff) {
+				unset($poss);
+				if($stuff['singular'] == $which) { $which = $table; break; }
+				else if($which == $table) $poss = $table;
+			}
+
+			if(isset($poss)) $which = $poss;
+
+			if(!isset($this->local_structure[$which]['fields'][$slug]))
+				throw new callException;
+
+			$id = e::$sql->query("Select * From `$this->bundle.$which` Where `$slug` = '$args[0]'")->row();
+			$id = $id['id'];
+
+			return call_user_func_array(array($this, $func), array($id));
+		}
+
+		throw new callException;
 	}
 	
 }
