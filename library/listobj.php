@@ -634,7 +634,8 @@ class ListObj implements \Iterator, \Countable {
 		 */
 		if(isset($_GET['--sql-cond'])) {
 			//$this;$cond;
-			eval(d);
+			if(e\after($_GET['--sql-cond']))
+				eval(d);
 		}
 		
 		/**
