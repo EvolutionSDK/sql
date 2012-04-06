@@ -22,6 +22,11 @@ class ListObj implements \Iterator, \Countable {
 	public $_table;
 
 	/**
+	 * History
+	 */
+	public $_query_history = array();
+
+	/**
 	 * Extension Handler
 	 */
 	private $_extensionHandler;
@@ -726,6 +731,12 @@ class ListObj implements \Iterator, \Countable {
 		 */
 		if(isset($debug) && $debug) return $query;
 		
+		/**
+		 * Record queries run
+		 * @author Nate Ferrero
+		 */
+		$this->_query_history[] = $query;
+
 		/**
 		 * Run query
 		 */
