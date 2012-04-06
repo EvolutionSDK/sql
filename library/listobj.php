@@ -627,6 +627,15 @@ class ListObj implements \Iterator, \Countable {
 				$cond .= $condi.' ';
 			}
 		}
+
+		/**
+		 * Dump Query Conditions
+		 * @author Nate Ferrero
+		 */
+		if(isset($_GET['--sql-cond'])) {
+			//$this;$cond;
+			eval(d);
+		}
 		
 		/**
 		 * Process Group By Conditions
