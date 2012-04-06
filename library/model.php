@@ -162,15 +162,6 @@ class Model {
 				self::$_cache[$table][$id['id']] = $id;
 				$this->_data =& self::$_cache[$table][$id['id']];
 			}
-			else if(is_string($id) && preg_match("/^[A-Za-z-]+$/", $id)) {
-				if(isset(\Bundles\SQL\Bundle::$db_structure[$this->_table]['fields']['slug'])) {
-					// check if the slug field is available
-					self::$_cache[$table][$id] = $this->_connection->select($table, "WHERE `slug` = '$id'")->row();
-					$this->_data =& self::$_cache[$table][$id];
-				} else {
-					throw new Exception("Trying to load a row from the table [$this->_table] with slug[$id], but there is no slug column on this table.");
-				}
-			}
 			
 			/**
 			 * If no data was loaded assume that false was passed
