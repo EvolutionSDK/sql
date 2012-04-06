@@ -616,8 +616,12 @@ class ListObj implements \Iterator, \Countable {
 
 		return $this->m2m($use, (isset($same) ? 1 : $table), $id);
 	}
+
+	public function raw() {
+		return $this->_run_query(false, false, true);
+	}
 	
-	public function _run_query($count = false, $extra = false) {
+	public function _run_query($count = false, $extra = false, $raw = false) {
 		if($count === 'debug') {
 			$count = false;
 			$debug = true;
@@ -746,6 +750,8 @@ class ListObj implements \Iterator, \Countable {
 		/**
 		 * Run query
 		 */
+		if($raw) return $query;
+
 		$results = e::sql($this->_connection)->query($query);
 		
 		/**
