@@ -745,7 +745,20 @@ class ListObj implements \Iterator, \Countable {
 		 * Record queries run
 		 * @author Nate Ferrero
 		 */
-		$this->_query_history[] = $query;
+		if(isset($_GET['--sql-history']) && strpos($query, $_GET['--sql-history']) !== false) {
+			//$stack = debug_backtrace();
+			//foreach($stack as &$trace) {
+			//	if(isset($trace['object']))
+			//		$trace['object'] = '[Object '.get_class($trace['object']).']';
+			//	$trace['args'] = e\ToArray($trace['args']);
+			//}
+
+
+
+			// $query $stack 
+			eval(d);
+			$this->_query_history[] = array('query' => $query, 'stack' => $stack);
+		}
 
 		/**
 		 * Run query
