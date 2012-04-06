@@ -188,6 +188,12 @@ class ListObj implements \Iterator, \Countable {
 	 */
 	public function condition($field, $value, $table = false, $verify = false) {
 		/**
+		 * Reset query
+		 */
+		$this->_has_query = false;
+		$this->_results = null;
+
+		/**
 		 * Prepare condition values
 		 */
 		$signal	= strpos($field, ' ') ? substr($field, strpos($field, ' ') + 1) : '=';
