@@ -758,6 +758,8 @@ class ListObj implements \Iterator, \Countable {
 			// $query $stack 
 			eval(d);
 			$this->_query_history[] = array('query' => $query, 'stack' => $stack);
+		} else {
+			$this->_query_history[] = $query;
 		}
 
 		/**
