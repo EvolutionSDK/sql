@@ -520,10 +520,10 @@ class ListObj implements \Iterator, \Countable {
 	public function paging_html($class = '', $gvar = "page") {
 		$paging = $this->paging(); $output = ''; $i=1;
 		if($paging->page > 1) 
-			$output .= "<a class=\"$class\" href=\"?".http_build_query(array_merge(e::$input->get, array($gvar => $paging->page - 1)))."\">&laquo;</a>";
+			$output .= "<a class=\"$class\" href=\"?".http_build_query(array_merge(e::$resource->get, array($gvar => $paging->page - 1)))."\">&laquo;</a>";
 		while($i<=$paging->pages) {
 			$tmp = $class.($paging->page == $i ? ' selected disabled' : '');
-			$output .= "<a class=\"$tmp\" href=\"?".http_build_query(array_merge(e::$input->get, array($gvar => $i)))."\">$i</a>";
+			$output .= "<a class=\"$tmp\" href=\"?".http_build_query(array_merge(e::$resource->get, array($gvar => $i)))."\">$i</a>";
 			if($i == 5 && $paging->pages > 10 && !isset($inc)) {
 				$output .= '...';
 				$i = $paging->pages - 4;
@@ -531,7 +531,7 @@ class ListObj implements \Iterator, \Countable {
 			} else $i++;
 		}
 		if($paging->page < $paging->pages) 
-			$output .= "<a class=\"$class\" href=\"?".http_build_query(array_merge(e::$input->get, array($gvar => $paging->page + 1)))."\">&raquo;</a>"; $i=1;
+			$output .= "<a class=\"$class\" href=\"?".http_build_query(array_merge(e::$resource->get, array($gvar => $paging->page + 1)))."\">&raquo;</a>"; $i=1;
 		return $output;
 	}
 	
