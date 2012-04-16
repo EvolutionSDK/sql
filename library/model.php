@@ -112,6 +112,12 @@ class Model {
 			case 'bundlename':
 				return $this->_bundle . '.' . $this->_name;
 			break;
+			case 'url':
+				return $this->_bundle . '/' . $this->_name;
+			break;
+			case 'url-id':
+				return $this->_bundle . '/' . $this->_name . '/' . $this->id;
+			break;
 			case 'map':
 			default:
 				return $this->_bundle . '.' . $this->_name . ':' . $this->id;
