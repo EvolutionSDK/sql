@@ -265,25 +265,25 @@ class Architect {
 						break;
 					}
 
-					$sql = "ALTER TABLE `$this->table` ADD COLUMN `$field` $type $null $extra $default";
+					$sql = "ALTER TABLE `$this->table` ADD COLUMN `$field` $type $null $extra $default;";
 					if(isset($key)) $sql .= $key;
 
 					$this->dbh->query($sql);				
 				break;
 				case 'changed':
 
-					$sql = "ALTER TABLE `$this->table` CHANGE `$field` `$field` $type $null $extra $default";
+					$sql = "ALTER TABLE `$this->table` CHANGE `$field` `$field` $type $null $extra $default;";
 					$this->dbh->query($sql);
 
 					switch($opts->Key) {
 						case 'PRI':
-							$key = "ALTER TABLE `$this->table` ADD PRIMARY KEY ($field)";
+							$key = "ALTER TABLE `$this->table` ADD PRIMARY KEY ($field);";
 						break;
 						case 'UNI':
-							$key = "ALTER TABLE `$this->table` ADD UNIQUE KEY `$field` (`$field`)";
+							$key = "ALTER TABLE `$this->table` ADD UNIQUE KEY `$field` (`$field`);";
 						break;
 						case 'MUL':
-							$key = "ALTER TABLE `$this->table` ADD KEY `$field` (`$field`)";
+							$key = "ALTER TABLE `$this->table` ADD KEY `$field` (`$field`);";
 						break;
 						default:
 							/**
@@ -301,7 +301,7 @@ class Architect {
 					if(isset($key)) $this->dbh->query($key);
 				break;
 				case 'removed':
-					$sql = "ALTER TABLE `$this->table` DROP `$field`";
+					$sql = "ALTER TABLE `$this->table` DROP `$field`;";
 					$this->dbh->query($sql);
 				break;
 			}
