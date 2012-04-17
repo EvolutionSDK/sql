@@ -172,8 +172,6 @@ class Connection {
 			$e->query = $sql;
 			throw $e;
 		}
-				
-		
 		
 		/**
 		 * Stop the timer and return how long the query took
