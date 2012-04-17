@@ -112,6 +112,32 @@ class Bundle {
 		
 		return $conn;
 	}
+
+	/**
+	 * Return structure without indexes
+	 * @author Kelly Becker
+	 */
+	public function __structure() {
+		static $struct = array();
+
+		if(!empty($struct))
+			return $struct;
+
+		$array = self::$db_structure;
+		foreach($array as $table => &$opts) {
+
+			$fields = array();
+			foreach($opts['fields'] as $field => $type) {
+				if($field[0] === '+') $field = substr($field, 1);
+
+				$fields[$field] = $type;
+			}
+
+			$opts['fields'] = $fields;
+		}
+
+		return $array;
+	}
 	
 	/**
 	 * Create a new mysql server connection.

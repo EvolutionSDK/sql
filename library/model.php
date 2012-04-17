@@ -857,12 +857,7 @@ class Model {
 				}
 				
 				else if(isset($relation_tables['o']) && in_array($matched, $relation_tables['o'])) {
-					$where = array(
-						'$'.$matched.'_id' => $args[0],
-						"id" => $this->id
-					);
-
-					if($this->_connection->select($this->_table, $where)->row())
+					if(isset($this->{'$'.$matched.'_id'}) && $this->{'$'.$matched.'_id'} == $args[0])
 						return true;
 					else return false;
 				}
