@@ -816,7 +816,7 @@ class ListObj implements \Iterator, \Countable {
 			if(!isset(e::$$bundle))
 				throw new Exception("Bundle `$bundle` is not installed");
 			
-			$ppm = $this->_custom_query ? $row : e::$$bundle->$model($row['id']);
+			$ppm = $this->_custom_query ? $row : e::$$bundle->$model($row);
 
 			/**
 			 * Set Flags
