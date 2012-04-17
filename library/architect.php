@@ -112,7 +112,8 @@ class Architect {
 		/**
 		 * Make sure all required fields are present
 		 */
-		foreach($fields as $field=>$val) {
+		$new_fields = array();
+		foreach($fields as $field => $val) {
 			
 			if($val == '_suppress') { unset($fields[$field]); continue; }
 			
@@ -125,23 +126,27 @@ class Architect {
 					'Extra' => ''
 				);
 			}
-			else {
-				if(!isset($val['Null'])) $val['Null'] = 'NO';
-				if(!isset($val['Key'])) $val['Key'] = '';
-				if(!isset($val['Default'])) $val['Default'] = NULL;
-				if(!isset($val['Extra'])) $val['Extra'] = '';				
+
+			if($field[0] === '+') {
+				$val['Key'] = 'MUL';
+				$field = substr($field, 1);
 			}
+
+			if(!isset($val['Null'])) $val['Null'] = 'NO';
+			if(!isset($val['Key'])) $val['Key'] = '';
+			if(!isset($val['Default'])) $val['Default'] = NULL;
+			if(!isset($val['Extra'])) $val['Extra'] = '';
 
 			if($val['Null'] === true) $val['Null'] = 'YES';
 			if($val['Null'] === false) $val['Null'] = 'NO';
 
-			$fields[$field] = $val;
+			$new_fields[$field] = $val;
 		}
 		
 		/**
 		 * Save fields to the object
 		 */
-		$this->fields = $fields;
+		$this->fields = $new_fields;
 		
 		/**
 		 * Check to see if the table exists
@@ -278,7 +283,7 @@ class Architect {
 							$key = "ALTER TABLE `$this->table` ADD UNIQUE KEY `$field` (`$field`)";
 						break;
 						case 'MUL':
-							$key = "ALTER TABLE `$this->table` ADD KEY `$field` ($field)";
+							$key = "ALTER TABLE `$this->table` ADD KEY `$field` (`$field`)";
 						break;
 						default:
 							/**

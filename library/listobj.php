@@ -622,6 +622,11 @@ class ListObj implements \Iterator, \Countable {
 	}
 	
 	public function _run_query($count = false, $extra = false, $raw = false) {
+		/**
+		 * Run all extensions with this method
+		 */
+		$this->_->all('_on_run_query');
+
 		if($count === 'debug') {
 			$count = false;
 			$debug = true;
@@ -1036,6 +1041,7 @@ class ListExtensionHandler {
 
 	private $list;
 	private $extensions = array();
+	private $lextensions = array();
 
 	public function __construct($list) {
 		$this->list = $list;
@@ -1052,6 +1058,26 @@ class ListExtensionHandler {
 		return $this->extensions[$extension];
 	}
 
+	public function all($method, $args = array()) {
+		$return = array();
+		
+		if(empty($this->lextensions)) foreach(Bundle::$db_structure as $table) {
+			if(isset($table['extensions'])) foreach($table['extensions'] as $ext)
+				$this->lextensions[] = $ext;
+		}
+
+		foreach($this->lextensions as $ext) {
+			$ext = strtolower($ext);
+			if(!isset($this->extensions[$ext]))
+				$this->extensions[$ext] = new ListExtensionAccess($this->list, Bundle::extension($ext));
+
+			if($this->extensions[$ext]->method_exists($method))
+				$return[] = $this->extensions[$ext]->__call($method, $args);
+		}
+
+		return $return;
+	}
+
 }
 
 /**
@@ -1066,6 +1092,11 @@ class ListExtensionAccess {
 	public function __construct($list, $extension) {
 		$this->list = $list;
 		$this->extension = $extension;
+	}
+
+	public function method_exists($method) {
+		$method = "list" . ucfirst($method);
+		return method_exists($this->extension, $method);
 	}
 
 	public function __call($method, $args) {
