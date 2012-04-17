@@ -170,9 +170,15 @@ class Architect {
 	}
 	
 	protected function _exists($table = false) {
+		static $cache = array();
+
+		if(isset($cache[$table]))
+			return $cache[$table];
+		
 		$table = $table ? $table : $this->table;
-		if(!$this->dbh->query("SHOW TABLES LIKE '$table'")->row()) return false;
-		else return true;
+		if(!$this->dbh->query("SHOW TABLES LIKE '$table'"))
+			return $cache[$table] = true;
+		else $cache[$table] = false;
 	}
 	
 	protected function _compare() {

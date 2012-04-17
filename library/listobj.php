@@ -1025,9 +1025,15 @@ class ListObj implements \Iterator, \Countable {
 	 * @author Kelly Becker
 	 */
 	private function _exists($table = false) {
-		$table = $table ? $table : $this->_table;
-		if(!e::sql($this->_connection)->query("SHOW TABLES LIKE '$table'")->row()) return false;
-		else return true;
+		static $cache = array();
+
+		if(isset($cache[$table]))
+			return $cache[$table];
+		
+		$table = $table ? $table : $this->table;
+		if(!e::sql($this->_connection)->query("SHOW TABLES LIKE '$table'")->row())
+			return $cache[$table] = true;
+		else $cache[$table] = false;
 	}
 
 }

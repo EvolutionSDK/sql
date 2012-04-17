@@ -119,9 +119,15 @@ class Connection {
 	 * Checks to see if a table exists
 	 */
 	public function _exists($table = false) {
+		static $cache = array();
+
+		if(isset($cache[$table]))
+			return $cache[$table];
+		
 		$table = $table ? $table : $this->table;
-		if(!$this->query("SHOW TABLES LIKE '$table'")->row()) return false;
-		else return true;
+		if(!$this->query("SHOW TABLES LIKE '$table'")->row())
+			return $cache[$table] = true;
+		else $cache[$table] = false;
 	}
 	
 	/**
