@@ -15,6 +15,7 @@ class SQLBundle {
 	private $_changed = false;
 	
 	protected $local_structure = array();
+	protected $local_structure_clean = array();
 	
 	public function __construct($dir) {
 		$this->dir = $dir;
@@ -122,6 +123,7 @@ class SQLBundle {
 		 */
 		foreach($sql as $table=>$val) Bundle::$db_structure[$this->bundle.'.'.$table] = $val;
 		foreach($sql as $table=>$val) $this->local_structure[$table] = $val;
+		$this->__clean_structure();
 	}
 	
 	/**
@@ -133,6 +135,8 @@ class SQLBundle {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function __call($func, $args) {
+		e::$sql->null();
+
 		/**
 		 * Allow Overriding the Call in the child elements
 		 */
@@ -151,9 +155,9 @@ class SQLBundle {
 			$method = $m;
 		}
 		
-		if(empty($this->local_structure)) return false;
+		if(empty($this->local_structure_clean)) return false;
 		
-		foreach($this->local_structure as $table=>$relations) {
+		foreach($this->local_structure_clean as $table=>$relations) {
 			if($search == $table && (!isset($relations['plural']) || $relations['plural'] != $search)) {
 				$plural = false;
 				break;
@@ -213,7 +217,7 @@ class SQLBundle {
 			
 			$which = substr($func, 3);
 
-			foreach($this->local_structure as $table => $stuff) {
+			foreach($this->local_structure_clean as $table => $stuff) {
 				unset($poss);
 				if($stuff['singular'] == $which) { $which = $table; break; }
 				else if($which == $table) $poss = $table;
@@ -221,7 +225,7 @@ class SQLBundle {
 
 			if(isset($poss)) $which = $poss;
 
-			if(!isset($this->local_structure[$which]['fields'][$slug]))
+			if(!isset($this->local_structure_clean[$which]['fields'][$slug]))
 				throw new callException;
 
 			$id = e::$sql->query("Select * From `$this->bundle.$which` Where `$slug` = '$args[0]'")->row();
@@ -231,6 +235,30 @@ class SQLBundle {
 		}
 
 		throw new callException;
+	}
+
+	/**
+	 * Return structure without indexes
+	 * @author Kelly Becker
+	 */
+	private function __clean_structure() {
+		if(!empty($this->local_structure_clean))
+			return $this->local_structure_clean;
+
+		$array = $this->local_structure;
+		foreach($array as $table => &$opts) {
+
+			$fields = array();
+			foreach($opts['fields'] as $field => $type) {
+				if($field[0] === '+') $field = substr($field, 1);
+
+				$fields[$field] = $type;
+			}
+
+			$opts['fields'] = $fields;
+		}
+
+		return $this->local_structure_clean = $array;
 	}
 	
 }

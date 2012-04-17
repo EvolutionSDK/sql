@@ -461,7 +461,7 @@ class Model {
 		/**
 		 * Grab the data for the active table
 		 */
-		$relations = Bundle::$db_structure[$this->_table];
+		$relations = Bundle::$db_structure_clean[$this->_table];
 
 		/**
 		 * Remove unneeded relationship information
@@ -503,8 +503,8 @@ class Model {
 		 * Find the results being called
 		 */
 		foreach($possible_tables as $table) {
-			$plural_w = strtolower(Bundle::$db_structure[$table]['plural']);
-			$singular_w = strtolower(Bundle::$db_structure[$table]['singular']);
+			$plural_w = strtolower(Bundle::$db_structure_clean[$table]['plural']);
+			$singular_w = strtolower(Bundle::$db_structure_clean[$table]['singular']);
 
 			if((strrpos($search, $plural_w) === false) && (strrpos($search, $singular_w) === false)) continue;
 
@@ -639,7 +639,7 @@ class Model {
 					if(empty($row)) throw new NoMatchException("No results were returned when calling `$func(...)` on the `$this->_table` model.");
 					
 					list($bundle, $model) = explode('.', $matched);
-					$type = Bundle::$db_structure[$matched]['singular'];
+					$type = Bundle::$db_structure_clean[$matched]['singular'];
 					
 					if(!isset(e::$$bundle))
 						throw new Exception("Bundle `$bundle` is not installed");

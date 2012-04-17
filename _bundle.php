@@ -22,6 +22,7 @@ class InvalidRequestException extends Exception {
 class Bundle {
 	
 	public static $db_structure = array();
+	public static $db_structure_clean = array();
 	public static $connection_flags = array();
 	public static $changed = false;
 	
@@ -117,11 +118,9 @@ class Bundle {
 	 * Return structure without indexes
 	 * @author Kelly Becker
 	 */
-	public function __structure() {
-		static $struct = array();
-
-		if(!empty($struct))
-			return $struct;
+	private function __clean_structure() {
+		if(!empty(self::$db_structure_clean))
+			return self::$db_structure_clean;
 
 		$array = self::$db_structure;
 		foreach($array as $table => &$opts) {
@@ -136,7 +135,7 @@ class Bundle {
 			$opts['fields'] = $fields;
 		}
 
-		return $array;
+		return self::$db_structure_clean = $array;
 	}
 	
 	/**
@@ -196,6 +195,7 @@ class Bundle {
 			$config = array();
 		}
 
+		$this->__clean_structure();
 	}
 
 	public static function extension($ext) {

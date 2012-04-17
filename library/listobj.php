@@ -102,7 +102,7 @@ class ListObj implements \Iterator, \Countable {
 		if($table) $this->_table = $table;
 		if($connection) $this->_connection = $connection;
 		
-		$get_table = Bundle::$db_structure[$this->_table];
+		$get_table = Bundle::$db_structure_clean[$this->_table];
 
 		$spec = explode('.',$this->_table);
 		$bundle = array_shift($spec);
@@ -956,7 +956,7 @@ class ListObj implements \Iterator, \Countable {
 	 * Standard query access
 	 */
 	public function auto() {
-		$fields = Bundle::$db_structure[$this->_table]['fields'];
+		$fields = Bundle::$db_structure_clean[$this->_table]['fields'];
 		foreach($_REQUEST as $key => $value) {
 			if(empty($value)) continue;
 			$value = preg_replace('[^a-zA-Z0-9_.-]', '', $value);
@@ -1061,7 +1061,7 @@ class ListExtensionHandler {
 	public function all($method, $args = array()) {
 		$return = array();
 		
-		if(empty($this->lextensions)) foreach(Bundle::$db_structure as $table) {
+		if(empty($this->lextensions)) foreach(Bundle::$db_structure_clean as $table) {
 			if(isset($table['extensions'])) foreach($table['extensions'] as $ext)
 				$this->lextensions[] = $ext;
 		}

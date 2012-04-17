@@ -19,7 +19,7 @@ class Manage {
 	public function sqlInfo($rchange = false) {
 		if($rchange) {
 			$rchange = 0;
-			foreach(Bundle::$db_structure as $info) {
+			foreach(Bundle::$db_structure_clean as $info) {
 				if($info['changed'] == true) $rchange++;
 			}
 			if($rchange > 0) return $rchange.' Pending Changes'; 
@@ -27,7 +27,7 @@ class Manage {
 		}
 
 		ob_start();
-		foreach(Bundle::$db_structure as $table => $info) {
+		foreach(Bundle::$db_structure_clean as $table => $info) {
 			list($bundle, $tbl) = explode('.', $table);
 			if($info['changed']) $changed = "red";
 			else $changed = "green";

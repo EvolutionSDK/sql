@@ -350,9 +350,9 @@ class Connection {
 	 */
 	public function get_fields($table, $as_keys = false) {
 		if($as_keys === true) {
-			if(!isset(Bundle::$db_structure[$table])) return false;
+			if(!isset(Bundle::$db_structure_clean[$table])) return false;
 
-			$array = Bundle::$db_structure[$table]['fields'];
+			$array = Bundle::$db_structure_clean[$table]['fields'];
 			if(!isset($array['id']) || $array['id'] != '_supress') $array['id'] = 'number';
 			if(!isset($array['created_timestamp']) || $array['created_timestamp'] != '_supress') $array['created_timestamp'] = 'date';
 			if(!isset($array['updated_timestamp']) || $array['updated_timestamp'] != '_supress') $array['updated_timestamp'] = 'date';
