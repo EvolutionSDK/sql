@@ -1027,13 +1027,14 @@ class ListObj implements \Iterator, \Countable {
 	private function _exists($table = false) {
 		static $cache = array();
 
+		$table = $table ? $table : $this->_table;
+
 		if(isset($cache[$table]))
 			return $cache[$table];
 		
-		$table = $table ? $table : $this->table;
 		if(!e::sql($this->_connection)->query("SHOW TABLES LIKE '$table'")->row())
-			return $cache[$table] = true;
-		else $cache[$table] = false;
+			return $cache[$table] = false;
+		else return $cache[$table] = true;
 	}
 
 }
