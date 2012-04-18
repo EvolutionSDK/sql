@@ -42,7 +42,7 @@ class ListObj implements \Iterator, \Countable {
 	protected $_result_array;
 	protected $_result_model;
 	protected $_results;
-	protected $position = 0;
+	public $position = 0;
 	protected $_has_query = false;
 	protected $_raw;
 	
