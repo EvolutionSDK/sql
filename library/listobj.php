@@ -835,10 +835,15 @@ class ListObj implements \Iterator, \Countable {
 		foreach($this->_models as $model) {
 			$pp[] = $model;
 		}
-		
-		$this->_results = $pp;
-		if($count === false)
+
+		/**
+		 * Don't reset results on count
+		 * @author Nate Ferrero
+		 */
+		if($count === false) {
+			$this->_results = $pp;
 			$this->_has_query = true;
+		}
 	}
 	
 	/**
@@ -1070,7 +1075,8 @@ class ListExtensionHandler {
 		
 		if(empty($this->lextensions)) foreach(Bundle::$db_structure_clean as $table) {
 			if(isset($table['extensions'])) foreach($table['extensions'] as $ext)
-				$this->lextensions[] = $ext;
+				if(!in_array($ext, $this->lextensions))
+					$this->lextensions[] = $ext;
 		}
 
 		foreach($this->lextensions as $ext) {
