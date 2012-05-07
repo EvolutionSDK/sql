@@ -151,6 +151,10 @@ class Bundle {
 		return $this->connections[$slug];
 	}
 
+	/**
+	 * Build SQL in Manager
+	 * @author Kelly Becker
+	 */
 	public function __buildSQL() {
 		$this->build_relationships();
 		$this->build_architecture();
@@ -163,7 +167,7 @@ class Bundle {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	private function build_relationships() {
+	public function build_relationships() {
 		if(empty(self::$db_structure)) return false;
 		
 		foreach(self::$db_structure as $table=>$config) {

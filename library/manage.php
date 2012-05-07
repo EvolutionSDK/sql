@@ -17,6 +17,8 @@ class Manage {
 	}
 
 	public function sqlInfo($rchange = false) {
+		e::sql('%bundle%')->build_relationships();
+
 		if($rchange) {
 			$rchange = 0;
 			foreach(Bundle::$db_structure_clean as $info) {
