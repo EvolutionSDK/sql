@@ -76,8 +76,6 @@ class SQLBundle {
 		 */
 		$sql = e::$yaml->merge($load, true);
 
-		if($this->bundle === 'members') dump($sql);
-
 		/**
 		 * If a relation is on the same table prefix it with its bundle name
 		 */
