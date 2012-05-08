@@ -30,23 +30,53 @@ class SQLBundle {
 	}
 	
 	public function _sql_initialize() {
+		$bundle = $this->bundle;
 		$this->initialized = true;
+		$dirs = e\extend($this->bundle);
+		array_walk($dirs, function(&$v) use ($bundle) {
+			$v = $v.'/'.$bundle;
+		});
+		array_unshift($dirs, $this->dir);
 		$file = $this->dir.'/configure/sql_structure.yaml';
-		
+
 		/**
-		 * If File Has Changed
+		 * Require the initial SQL Structure file
 		 */
-		if(e::$yaml->is_changed($file)) {
-			Bundle::$changed = true;
-			$this->_changed = true;
+		if(!is_file($file))
+			throw new Exception("Please create SQL Configuration `$file` for the `$this->bundle` bundle.");
+
+		/**
+		 * Loop through all the extensions and figure out which files need loading
+		 */
+		$load = array();
+		foreach($dirs as $dir) {
+			
+			/**
+			 * If the file does not exist just skip it
+			 */
+			if(!is_file($file = $dir.'/configure/sql_structure.yaml'))
+				continue;
+
+			/**
+			 * Check this specific file for changes
+			 */
+			if(e::$yaml->is_changed($file)) {
+				Bundle::$changed = true;
+				$this->_changed = true;
+			}
+
+			/**
+			 * Set to the merge array
+			 */
+			$load[] = $file;
 		}
-		
-		try {
-			$sql = e::$yaml->load($file, true);
-		}
-		catch(Exception $e) {
-			throw new Exception("Error loading SQL configuration for bundle `$this->bundle` from file `$file`", 0, $e);
-		}
+
+		/**
+		 * Load and merge all the yaml files
+		 */
+		$sql = e::$yaml->merge($load, true);
+
+		if($this->bundle === 'members') dump($sql);
 
 		/**
 		 * If a relation is on the same table prefix it with its bundle name
