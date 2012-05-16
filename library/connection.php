@@ -45,6 +45,10 @@ class Connection {
 		$this->slug = $slug;
 		$access = $this->_parse_access_url($url, 'dsn');
 		try {
+			if(isset($_GET['--sql-dsn'])) {
+				e::$security->developerAccess("View database connection details.");
+				dump($access);
+			}
 			$this->connection = new PDO($access['dsn'], $access['user'], $access['password']);
 			$this->query("SHOW TABLES");
 		} catch(PDOException $e) {
@@ -230,6 +234,8 @@ class Connection {
 			case 'dsn':
 				if($driver == 'mysql') $dsn = "mysql:host=$host;dbname=$database;";
 				if($driver == 'sqlite') $dsn = "sqlite:$host;";
+				if(!empty($port))
+					$dsn .= 'port=' . $port . ';';
 				if(!isset($dsn))
 					throw new Exception("Unknown database driver `$driver`");
 				$dsn = array('dsn' => $dsn, 'user' => $user, 'password' => $password);
