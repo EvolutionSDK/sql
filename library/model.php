@@ -568,7 +568,7 @@ class Model {
 			$tmp = explode(' ', array_pop($args));
 			$fconn = $this->_table.'-v-'.$matched;
 			if(!isset(Bundle::$connection_flags[$fconn]))
-				throw new Exception("Trying to use connection flags on the `$this->_table` &harr; `$matched`
+				throw new Exception("Trying to use connection flags `$last` on the `$this->_table` &harr; `$matched`
 					connection when no flags are specified.");
 			foreach($tmp as $flag) {
 				if(!isset(Bundle::$connection_flags[$fconn][$flag]))
