@@ -147,7 +147,10 @@ class Bundle {
 		} catch(Exception $e) {
 			e::$environment->invalidVar("sql.connection.$slug", $e);
 		}
-		
+
+		if(empty($conn))
+			throw new Exception("Invalid SQL Connection");
+
 		$conn->checkTimeSync();
 		
 		return $conn;
