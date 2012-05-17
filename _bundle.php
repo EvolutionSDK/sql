@@ -60,6 +60,45 @@ class Bundle {
 		 */
 		if($enabled === true || $enabled === 'yes')
 			if(e::$sql->query("SHOW TABLES")->count() == 0) $this->build_architecture();
+
+		/**
+		 * SQL Ready
+		 */
+		e::$events->sql_ready();
+
+		/**
+		 * Extend environment variables through SQL
+		 * @author Nate Ferrero
+		 */
+		//$this->_sql_environment();
+	}
+
+	/**
+	 * Load environment overrides from database
+	 * @todo Make this more anonymous with regard to environment storage mechanism
+	 * @todo Move this logic into SQL bundle responding to environment_load event
+	 * @author Nate Ferrero
+	 */
+	public function _sql_environment() {
+
+		try {
+			$vars = e::$sql->query('SELECT * FROM `environment.variable`')->all();dump($vars);
+			foreach($vars as $key => $value)
+				self::$environment[strtolower($key)] = $value;
+		} catch(Exception $e) {
+
+			/**
+			 * Create the table
+			 */
+			e::$sql->query("CREATE TABLE `environment.variable` (
+			  `updated_timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			  `created_timestamp` datetime DEFAULT NULL,
+			  `name` varchar(255) NOT NULL,
+			  `value` text NOT NULL,
+			  PRIMARY KEY (`name`)
+			) ENGINE=MyISAM DEFAULT CHARSET=latin1;");
+
+		}
 	}
 	
 	public function __getBundle($method = false) {
