@@ -136,10 +136,24 @@ class Bundle {
 		if(!is_string($slug))
 			throw new Exception("Database connection slug must be a string when
 				calling `e::sql(<i>slug</i>)` or `e::$sql->useConnection(<i>slug</i>)`");
+
+		/**
+		 * Check for default and use environment if set
+		 * @author Nate Ferrero
+		 */
+		if($slug == 'default') {
+			$vars = array('XEROUND_DATABASE_INTERNAL_URL', 'XEROUND_DATABASE_URL');
+			foreach($vars as $var) {
+				if(!empty($_SERVER[$var]))
+					$default = $_SERVER[$var];
+			}
+		}
 		
-		// Load up the database connection from environment
-		$default = e::$environment->requireVar("sql.connection.$slug", 
+		// Load up the database connection from environment if not already defined
+		if(empty($default)) {
+			$default = e::$environment->requireVar("sql.connection.$slug", 
 			'service://username[:password]@hostname[:port]/database');
+		}
 		
 		// Try to make the connection
 		try {
