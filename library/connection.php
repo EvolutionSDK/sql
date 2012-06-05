@@ -77,6 +77,7 @@ class Connection {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function checkTimeSync() {
+		return false;
 		static $checked = false;
 		extract($this->query("SELECT NOW() as `mysqltime`;")->row());
 		$phptime = date("Y-m-d H:i:s");
@@ -274,7 +275,11 @@ class Connection {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function select($table, $conditions = '', $vsprintf = false) {
-		if(is_array($conditions)) $conditions = 'WHERE ' . $this->_fragment($conditions, ' AND ');
+		if(is_array($conditions)) {
+			$tmp = $this->_fragment($conditions, ' AND ');
+			if(empty($tmp)) $conditions = '';
+			else $conditions = 'WHERE ' . $tmp;
+		}
 		return $this->query("SELECT * FROM `$table` $conditions;", $vsprintf);
 	}
 

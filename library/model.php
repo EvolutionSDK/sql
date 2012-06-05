@@ -441,7 +441,7 @@ class Model {
 			$args[0] = $args[0]->id;
 
 		$func = strtolower($func);
-		$methods = array('get', 'link', 'unlink', 'haslink');
+		$methods = array('get', 'link', 'unlink', 'haslink', 'is');
 		foreach($methods as $m) if($m == substr($func, 0, strlen($m))) {
 			$search = substr($func, strlen($m));
 			$method = $m;
@@ -456,6 +456,14 @@ class Model {
 				else
 					$search = strtolower($originalModel->__getBundle() . $originalModel->__getName());
 			}
+		}
+
+		/**
+		 * If a flag is... return true/false
+		 * @author Kelly Becker
+		 */
+		if($method === 'is') {
+			return $this->_flags[strtolower($search)];
 		}
 
 		/**
