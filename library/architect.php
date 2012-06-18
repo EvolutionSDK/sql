@@ -46,6 +46,11 @@ class Architect {
 	 */
 	public $changes;
 	public $current;
+
+	/**
+	 * Store a list of the queries that will be run
+	 */
+	public static $queries = array();
 	
 	public function __construct(Connection $dbh, $table, $config) {
 		$this->dbh = $dbh;
@@ -275,12 +280,12 @@ class Architect {
 					$sql = "ALTER TABLE `$this->table` ADD COLUMN `$field` $type $null $extra $default;";
 					if(isset($key)) $sql .= $key;
 
-					$this->dbh->query($sql);				
+					$this->query($sql);				
 				break;
 				case 'changed':
 
 					$sql = "ALTER TABLE `$this->table` CHANGE `$field` `$field` $type $null $extra $default;";
-					$this->dbh->query($sql);
+					$this->query($sql);
 
 					switch($opts->Key) {
 						case 'PRI':
@@ -305,11 +310,11 @@ class Architect {
 					
 					if($this->current[$field]['Key'] == $this->fields[$field]['Key']) unset($key); 
 
-					if(isset($key)) $this->dbh->query($key);
+					if(isset($key)) $this->query($key);
 				break;
 				case 'removed':
 					$sql = "ALTER TABLE `$this->table` DROP `$field`;";
-					$this->dbh->query($sql);
+					$this->query($sql);
 				break;
 			}
 		}
@@ -365,7 +370,7 @@ class Architect {
 		if($ai) $ai = "AUTO_INCREMENT=1"; else $ai = '';
 		
 		$sql = "CREATE TABLE `$table` ($create) ENGINE=MyISAM $ai DEFAULT CHARSET=latin1";
-		$this->dbh->query($sql);
+		$this->query($sql);
 	}
 	
 	public function _connection_table($table_a, $table_b) {
@@ -456,6 +461,10 @@ class Architect {
 		if($this->_exists($table2)) return false;
 		
 		$this->_create($table1 ,$fields);
+	}
+
+	private function query($sql) {
+		self::$queries[] = $sql;
 	}
 	
 }
