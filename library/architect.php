@@ -156,7 +156,7 @@ class Architect {
 		/**
 		 * Check to see if the table exists
 		 */
-		$exists = $this->_exists();
+		$exists = $this->_exists(false, true);
 		
 		/**
 		 * Compare the current field configuration versus the new one
@@ -174,17 +174,23 @@ class Architect {
 		if(!$exists) $this->_create();
 	}
 	
-	protected function _exists($table = false) {
-		static $cache = array();
-
+	protected function _exists($table = false, $force_db = false) {
 		$table = $table ? $table : $this->table;
 
-		if(isset($cache[$table]))
-			return $cache[$table];
+		/**
+		 * Check the local un-run queries
+		 */
+		if(!$force_db) foreach(self::$queries as $query) {
+			if(stripos($query, "CREATE TABLE `$table`") === 0)
+				return true;
+		}
 		
+		/**
+		 * Check the database
+		 */
 		if(!$this->dbh->query("SHOW TABLES LIKE '$table'")->row())
-			return $cache[$table] = false;
-		else return $cache[$table] = true;
+			return false;
+		else return true;
 	}
 	
 	protected function _compare() {
@@ -325,6 +331,11 @@ class Architect {
 	protected function _create($table = false, $fields = false) {
 		$fields = $fields ? $fields : $this->fields;
 		$table = $table ? $table : $this->table;
+
+		/**
+		 * Block from duplicate table creation
+		 */
+		if($this->_exists($table)) return;
 		
 		$prikeys = array();
 		$keys = array();
@@ -414,7 +425,7 @@ class Architect {
 			
 			if($this->_exists($table)) return false;
 			
-			$this->_create($table ,$fields);
+			$this->_create($table, $fields);
 			
 			return;
 		}
