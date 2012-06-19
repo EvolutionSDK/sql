@@ -46,6 +46,11 @@ class Architect {
 	 */
 	public $changes;
 	public $current;
+
+	/**
+	 * Store a list of the queries that will be run
+	 */
+	public static $queries = array();
 	
 	public function __construct(Connection $dbh, $table, $config) {
 		$this->dbh = $dbh;
@@ -151,7 +156,7 @@ class Architect {
 		/**
 		 * Check to see if the table exists
 		 */
-		$exists = $this->_exists();
+		$exists = $this->_exists(false, true);
 		
 		/**
 		 * Compare the current field configuration versus the new one
@@ -169,17 +174,23 @@ class Architect {
 		if(!$exists) $this->_create();
 	}
 	
-	protected function _exists($table = false) {
-		static $cache = array();
-
+	protected function _exists($table = false, $force_db = false) {
 		$table = $table ? $table : $this->table;
 
-		if(isset($cache[$table]))
-			return $cache[$table];
+		/**
+		 * Check the local un-run queries
+		 */
+		if(!$force_db) foreach(self::$queries as $query) {
+			if(stripos($query, "CREATE TABLE `$table`") === 0)
+				return true;
+		}
 		
+		/**
+		 * Check the database
+		 */
 		if(!$this->dbh->query("SHOW TABLES LIKE '$table'")->row())
-			return $cache[$table] = false;
-		else return $cache[$table] = true;
+			return false;
+		else return true;
 	}
 	
 	protected function _compare() {
@@ -275,12 +286,12 @@ class Architect {
 					$sql = "ALTER TABLE `$this->table` ADD COLUMN `$field` $type $null $extra $default;";
 					if(isset($key)) $sql .= $key;
 
-					$this->dbh->query($sql);				
+					$this->query($sql);				
 				break;
 				case 'changed':
 
 					$sql = "ALTER TABLE `$this->table` CHANGE `$field` `$field` $type $null $extra $default;";
-					$this->dbh->query($sql);
+					$this->query($sql);
 
 					switch($opts->Key) {
 						case 'PRI':
@@ -305,11 +316,11 @@ class Architect {
 					
 					if($this->current[$field]['Key'] == $this->fields[$field]['Key']) unset($key); 
 
-					if(isset($key)) $this->dbh->query($key);
+					if(isset($key)) $this->query($key);
 				break;
 				case 'removed':
 					$sql = "ALTER TABLE `$this->table` DROP `$field`;";
-					$this->dbh->query($sql);
+					$this->query($sql);
 				break;
 			}
 		}
@@ -320,6 +331,11 @@ class Architect {
 	protected function _create($table = false, $fields = false) {
 		$fields = $fields ? $fields : $this->fields;
 		$table = $table ? $table : $this->table;
+
+		/**
+		 * Block from duplicate table creation
+		 */
+		if($this->_exists($table)) return;
 		
 		$prikeys = array();
 		$keys = array();
@@ -365,7 +381,7 @@ class Architect {
 		if($ai) $ai = "AUTO_INCREMENT=1"; else $ai = '';
 		
 		$sql = "CREATE TABLE `$table` ($create) ENGINE=MyISAM $ai DEFAULT CHARSET=latin1";
-		$this->dbh->query($sql);
+		$this->query($sql);
 	}
 	
 	public function _connection_table($table_a, $table_b) {
@@ -409,7 +425,7 @@ class Architect {
 			
 			if($this->_exists($table)) return false;
 			
-			$this->_create($table ,$fields);
+			$this->_create($table, $fields);
 			
 			return;
 		}
@@ -456,6 +472,10 @@ class Architect {
 		if($this->_exists($table2)) return false;
 		
 		$this->_create($table1 ,$fields);
+	}
+
+	private function query($sql) {
+		self::$queries[] = $sql;
 	}
 	
 }

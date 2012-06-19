@@ -1,0 +1,9 @@
+div.queries > div {
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border: solid 1px #4E4E4E;
+	padding: 10px 20px;
+	display: block;
+	margin: 15px;
+}

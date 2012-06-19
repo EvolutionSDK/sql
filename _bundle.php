@@ -288,7 +288,7 @@ class Bundle {
 			if(in_array($table, $tables)) continue;
 			//if(strpos($table, '.') === false) continue;
 			
-			e::$sql->query("RENAME TABLE `$table` TO `\$archived $table`");
+			Architect::$queries[] = "RENAME TABLE `$table` TO `\$archived $table`";
 		}
 	}
 

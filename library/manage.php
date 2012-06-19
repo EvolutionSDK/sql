@@ -12,8 +12,105 @@ class Manage {
 	
 	public $title = 'SQL';
 
-	public function buildSQL() {
-		return e::sql('%bundle%')->__buildSQL();
+	/**
+	 * Show the list of the queries to be run
+	 * @author Kelly Becker
+	 */
+	public function showQueries() {
+
+		/**
+		 * Load the relationships and tables to build
+		 */
+		e::sql('%bundle%')->__buildSQL();
+
+		/**
+		 * Load the Style for the page
+		 */
+		echo "<style>".file_get_contents(__DIR__.'/manage/sql-show.css')."</style>";
+
+		/**
+		 * Create the Form
+		 */
+		echo "<form action=\"/@manage/sql/run\" method=\"POST\" class=\"queries\">";
+		foreach(Architect::$queries as $query) {
+			$regQuery = preg_replace('/\s+/', ' ', preg_replace('/`[a-zA-Z.]+`/', '', $query));
+
+			/**
+			 * Default SQL Methods
+			 */
+			if(strpos($query, 'DROP TABLE') !== FALSE)
+				$color = "red";
+			if(strpos($query, 'RENAME TABLE') !== FALSE)
+				$color = "red";
+			if(strpos($query, 'ALTER TABLE') !== FALSE)
+				$color = "yellow";
+			if(strpos($query, 'CREATE TABLE') !== FALSE)
+				$color = "green";
+
+			/**
+			 * More precise alter tables
+			 */
+			if(strpos($regQuery, 'ALTER TABLE DROP') !== FALSE)
+				$color = "red";
+			if(strpos($regQuery, 'ALTER TABLE ADD COLUMN') !== FALSE)
+				$color = "green";
+
+			/**
+			 * Automatically check the box
+			 */
+			$checked = "checked=\"checked\"";
+
+			/**
+			 * If this is a potentially dangerous query dont check by default
+			 */
+			if($color === 'red') $checked = '';
+
+			/**
+			 * Create the element
+			 */
+			echo "<label style=\"background: $color;\"><input type=\"checkbox\" name=\"query[]\" value=\"$query\" $checked /> $query</label>";
+		}
+
+		/**
+		 * Submit button
+		 */
+		echo "<label><input type=\"submit\" value=\"Run Selected Queries\" /></label>";
+		echo "</form>";
+
+		return;
+	}
+
+	/**
+	 * Run the queries
+	 * @author Kelly Becker
+	 */
+	public function runQueries() {
+		$post = $_POST;
+
+		/**
+		 * Load the page style
+		 */
+		echo "<style>".file_get_contents(__DIR__.'/manage/sql-run.css')."</style>";
+		
+		/**
+		 * Page title and wrapper
+		 */
+		echo "<h1 style=\"margin:15px;\">Run Queries</h1>";
+		echo "<div class=\"queries\">";
+
+		/**
+		 * Show each query
+		 */
+		foreach($post['query'] as $query) {
+			e::$sql->query($query);
+			echo "<div>$query</div>";
+		}
+
+		/**
+		 * Close the page
+		 */
+		echo "</div>";
+		return;
 	}
 
 	public function sqlInfo($rchange = false) {
@@ -58,18 +155,15 @@ class Manage {
 	}
 	
 	public function page($path) {
-		if(array_shift($path) == 'sync') return $this->buildSQL();
-		if(array_shift($path) == 'uptd') return $this->sqlInfo();
+		if($path[0] == 'show') return $this->showQueries();
+		if($path[0] == 'run') return $this->runQueries();
 
 		$all = array();
 		
 		echo '<style>' . file_get_contents(__DIR__ . '/manage/sql-style.css') . '</style>';
-		echo '<script type="text/javascript">' . file_get_contents(__DIR__ . '/manage/jquery-1.7.min.js') . '</script>';
-		echo '<script type="text/javascript">' . file_get_contents(__DIR__ . '/manage/sql-script.js') . '</script>';
+
 		echo '<div class="controls">
-				<span class="state-init"><em>Ready</em> | <a onclick="sql.sync()">Sync</a></span>
-				<span class="state-running"><em>Running sync...</em></span>
-				<span class="state-complete"><em>Complete!</em> | <a onclick="sql.sync()">Sync Again</a></span>
+				<span class="state-init"><a href="/@manage/sql/show">Run Architect</a></span>
 			</div>';
 		
 		echo '<ul class="categories" style="margin: 0; padding: 0;">';
