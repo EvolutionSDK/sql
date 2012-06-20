@@ -142,7 +142,7 @@ class Bundle {
 		 * @author Nate Ferrero
 		 */
 		if($slug == 'default') {
-			$vars = array('XEROUND_DATABASE_INTERNAL_URL', 'XEROUND_DATABASE_URL');
+			$vars = array('XEROUND_DATABASE_INTERNAL_URL', 'XEROUND_DATABASE_URL', 'DATABASE_URL', 'CLEARDB_DATABASE_URL');
 			foreach($vars as $var) {
 				if(!empty($_SERVER[$var])) {
 					$default = $_SERVER[$var];
