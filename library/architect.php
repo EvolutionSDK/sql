@@ -29,6 +29,7 @@ class Architect {
 		'text' => 'text',
 		'date' => 'datetime',
 		'bool' => 'tinyint(1)',
+		'boolean' => 'tinyint(1)',
 		'number' => 'int(11)',
 		'money' => 'decimal(10,2)',
 		'decimal' => 'decimal(10,3)'
@@ -132,6 +133,9 @@ class Architect {
 				);
 			}
 
+			if(isset(self::$types[$val['Type']]))
+				$val['Type'] = self::$types[$val['Type']];
+
 			if($field[0] === '+') {
 				$val['Key'] = 'MUL';
 				$field = substr($field, 1);
@@ -202,13 +206,11 @@ class Architect {
 		$types = array_flip(self::$types);
 		foreach($structure as $key => $field) {
 			$struct[$field['Field']] = $field;
-			$struct[$field['Field']]['Type'] = (isset($types[$field['Type']]) ? $types[$field['Type']] : $field['Type']);
 			unset($struct[$field['Field']]['Field']);
-		}
-		$structure = $struct;
-		
-		$this->current = $structure;
-		
+		} $this->current = $structure = $struct;
+
+		//if($this->table === 'webapp.account') dump(array($structure, $this->fields));
+				
 		$discrepency = array();
 		foreach($this->fields as $field=>$opts) {
 			$match = false;
@@ -218,7 +220,7 @@ class Architect {
 			if($match) {
 				$sopts = $structure[$field];
 
-				foreach($opts as $var=>$val) if($val !== $sopts[$var]) $match = false;
+				foreach($opts as $var=>$val) if($val != $sopts[$var]) $match = false;
 
 				if(!$match) $discrepency[$field] = 'changed';
 			}
@@ -236,16 +238,14 @@ class Architect {
 			
 		}
 		
-		//var_dump($discrepency); echo "<br /><br />";
-		//var_dump($this->fields); echo "<br /><br />";
-		//var_dump($structure); echo "<br /><br />";
-		
 		return $this->changes = $discrepency;
 	}
 	
 	protected function _update() {
 		$changes = $this->changes;
-		
+
+		//if(!empty($changes)) dump($this->table);
+
 		foreach($changes as $field=>$change) {
 			if($change !== 'removed') {
 				$opts = (object) $this->fields[$field];
@@ -284,6 +284,7 @@ class Architect {
 					}
 
 					$sql = "ALTER TABLE `$this->table` ADD COLUMN `$field` $type $null $extra $default;";
+
 					if(isset($key)) $sql .= $key;
 
 					$this->query($sql);				
