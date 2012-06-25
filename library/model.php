@@ -644,7 +644,7 @@ class Model {
 				
 				else if(!$plural) {
 					$row = $this->_connection->select($matched, $conds)->row();
-					if(empty($row)) throw new NoMatchException("No results were returned when calling `$func(...)` on the `$this->_table` model.");
+					if(empty($row)) return false;;
 					
 					list($bundle, $model) = explode('.', $matched);
 					$type = Bundle::$db_structure_clean[$matched]['singular'];
