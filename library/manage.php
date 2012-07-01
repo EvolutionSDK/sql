@@ -106,6 +106,8 @@ class Manage {
 			echo "<div>$query</div>";
 		}
 
+		echo "<div><a href=\"/@manage/sql/show\">Run Architect Again</a>";
+
 		/**
 		 * Close the page
 		 */
