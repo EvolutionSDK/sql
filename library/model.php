@@ -701,6 +701,8 @@ class Model {
 						throw new Exception("Using flags on the `$this->_table` &harr; `$matched` connection that is not many-to-many.");
 
 					$update =  array('$'.$matched.'_id' => (string) $args[0]);
+
+					$this->{'$'.$matched.'_id'} = (string) $args[0];
 					$where = "WHERE `id` = '".$this->id."'";
 					$this->_connection->update($this->_table, $update, $where);
 					
