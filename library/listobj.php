@@ -668,7 +668,7 @@ class ListObj implements \Iterator, \Countable {
 			/**
 			 * Prepare the query to run
 			 */
-			$query = "SELECT COUNT(*) as `ct` FROM $this->_tables_select $cond";
+			$query = "SELECT COUNT(*) as `ct` FROM $this->_tables_select".($this->_join ? $this->_join : '')." $cond";
 			/**
 			 * Run query
 			 */
