@@ -657,7 +657,30 @@ class ListObj implements \Iterator, \Countable {
 			if(e\after($_GET['--sql-cond']))
 				eval(d);
 		}
-		
+
+		/**
+		 * Cannot add JOINS or GROUP BY's to the count
+		 * @todo make sure this doesnt' break other stuff.
+		 * @author David Boskovic
+		 */
+		if($count == 'count') {
+
+			/**
+			 * Prepare the query to run
+			 */
+			$query = "SELECT COUNT(*) as `ct` FROM $this->_tables_select $cond";
+			/**
+			 * Run query
+			 */
+			$results = e::sql($this->_connection)->query($query)->row();
+			
+			/**
+			 * Return IDs
+			 */
+			$this->_count = (int) ($results['ct'] ? $results['ct'] : 0);
+			return $this->_count;
+		}
+
 		/**
 		 * Process Group By Conditions
 		 */
@@ -707,6 +730,8 @@ class ListObj implements \Iterator, \Countable {
 			return e\array_get_keys($results, 'id');
 		}
 		
+
+
 		/**
 		 * Set Result Limit
 		 */
