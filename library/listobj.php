@@ -71,6 +71,7 @@ class ListObj implements \Iterator, \Countable {
 	 */
 	protected $_count = 0;
 	protected $_sum = array();
+	protected $_average = array();
 	
 	protected $_tb_singular;
 	protected $_tb_plural;
@@ -165,6 +166,12 @@ class ListObj implements \Iterator, \Countable {
 		
 		// $query $table
 		eval(d);
+	}
+
+	public function __clone() {
+		$this->_count = 0;
+		$this->_sum = array();
+		$this->_average = array();
 	}
 
 	/**
@@ -557,6 +564,19 @@ class ListObj implements \Iterator, \Countable {
 	}
 	
 	/**
+	 * Get the average amount of a specific column
+	 *
+	 * @param string $column 
+	 * @return float
+	 * @author David Boskovic
+	 */
+	public function average($column) {
+		if(!$this->_average[$column]) $this->_run_query('average', $column);
+		return $this->_average[$column];
+	}
+
+
+	/**
 	 * Get the sum of a specific column
 	 *
 	 * @param string $column 
@@ -564,7 +584,7 @@ class ListObj implements \Iterator, \Countable {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function sum($column) {
-		if($this->_sum[$column]) $this->_run_query('sum', $column);
+		if(!$this->_sum[$column]) $this->_run_query('sum', $column);
 		return $this->_sum[$column];
 	}
 	
@@ -675,10 +695,44 @@ class ListObj implements \Iterator, \Countable {
 			$results = e::sql($this->_connection)->query($query)->row();
 			
 			/**
-			 * Return IDs
+			 * Return Count
 			 */
 			$this->_count = (int) ($results['ct'] ? $results['ct'] : 0);
 			return $this->_count;
+		}
+		elseif($count == 'sum') {
+			/**
+			 * Prepare the query to run
+			 */
+			$query = "SELECT SUM(`$extra`) as `ct` FROM $this->_tables_select".($this->_join ? $this->_join : '')." $cond";
+
+			/**
+			 * Run query
+			 */
+			$results = e::sql($this->_connection)->query($query)->row();
+			
+			/**
+			 * Return Sum
+			 */
+			$this->_sum[$extra] = ($results['ct'] ? $results['ct'] : 0);
+			return $this->_sum[$extra];
+		}
+		elseif($count == 'average') {
+			/**
+			 * Prepare the query to run
+			 */
+			$query = "SELECT AVG(`$extra`) as `ct` FROM $this->_tables_select".($this->_join ? $this->_join : '')." $cond";
+
+			/**
+			 * Run query
+			 */
+			$results = e::sql($this->_connection)->query($query)->row();
+			
+			/**
+			 * Return Sum
+			 */
+			$this->_average[$extra] = ($results['ct'] ? $results['ct'] : 0);
+			return $this->_average[$extra];
 		}
 
 		/**
@@ -751,10 +805,6 @@ class ListObj implements \Iterator, \Countable {
 		/**
 		 * Get the sum of a row
 		 */
-		else if($count == 'sum') {
-			if(count($this->_group_cond) == 0) $fields_select = "SUM(`$extra`) AS `ct`";
-			else if(count($this->_group_cond) == 1) $fields_select = "SUM(`$extra`) as `ct`, ".$this->_group_cond[0]." as `_group`";
-		}
 		
 		/**
 		 * Grab the distinct query item if one exists
