@@ -59,6 +59,7 @@ class Result {
 		if($type == 'assoc') $grab = PDO::FETCH_ASSOC;
 		else if($type == 'num') $grab = PDO::FETCH_NUM;
 		else if($type == 'object') $grab = PDO::FETCH_OBJ;
+		else if($type == 'both') $grab = PDO::FETCH_BOTH;
 		else $grab = PDO::FETCH_ASSOC;
 
 		return $this->result->fetchAll($grab);
@@ -75,6 +76,8 @@ class Result {
 		if($type == 'assoc') $grab = PDO::FETCH_ASSOC;
 		else if($type == 'num') $grab = PDO::FETCH_NUM;
 		else if($type == 'object') $grab = PDO::FETCH_OBJ;
+		else if($type == 'lazy') $grab = PDO::FETCH_LAZY;
+		else if($type == 'both') $grab = PDO::FETCH_BOTH;
 		else $grab = PDO::FETCH_ASSOC;
 		
 		return $this->result->fetch($grab);

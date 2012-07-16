@@ -383,6 +383,9 @@ class ListObj implements \Iterator, \Countable {
 	public function add_select_field($field) {
 		$this->_fields_select .= ", $field";
 	}
+	public function replace_select_field($field) {
+		$this->_fields_select = "$field";
+	}
 	
 	/**
 	 * Add item to group by

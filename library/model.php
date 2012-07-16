@@ -27,7 +27,7 @@ class Model {
 	/**
 	 * Stored Data
 	 */
-	private $_data;
+	protected $_data;
 
 	/**
 	 * Extension Handler
