@@ -165,11 +165,13 @@ class SQLBundle {
 	public function __call($func, $args) {
 		e::$sql->null();
 
+		if($func == 'getTemplate' && e\after(2)) dump(func_get_args());
+
 		/**
 		 * Allow Overriding the Call in the child elements
 		 */
 		if(method_exists($this, '__callExtend')) {
-			try { return $this->__callExtend($func, $args); }
+			try { return call_user_func_array(array($this, '__callExtend'), func_get_args()); }
 			catch(callException $e) { }
 		}
 		
