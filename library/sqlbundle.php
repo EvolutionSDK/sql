@@ -165,7 +165,6 @@ class SQLBundle {
 	public function __call($func, $args) {
 		e::$sql->null();
 
-		if($func == 'getTemplate' && e\after(2)) dump(func_get_args());
 
 		/**
 		 * Allow Overriding the Call in the child elements
