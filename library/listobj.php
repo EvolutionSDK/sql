@@ -206,7 +206,7 @@ class ListObj implements \Iterator, \Countable {
 		$signal	= strpos($field, ' ') ? substr($field, strpos($field, ' ') + 1) : '=';
 		$field 	= strpos($field, ' ') ? substr($field, 0, strpos($field, ' ')) 	: $field;
 		$value 	= strpos($value, ':') === 0 && ctype_alpha(substr($value, 1) == true) ? '`'.substr($value, 1).'`' : $value;
-		$value 	= is_null($value) || is_numeric($value) || strpos($value, '`') === 0 ? $value : "'$value'";
+		$value 	= is_null($value) || $this->_is_numeric($value) || strpos($value, '`') === 0 ? $value : "'$value'";
 		
 		/**
 		 * If is null make sure we are checking NULL not 'NULL' or '' or 0
@@ -1120,6 +1120,12 @@ class ListObj implements \Iterator, \Countable {
 		else return $cache[$table] = true;
 	}
 
+	/**
+	 * Is Numeric (Not Double)
+	 */
+	private function _is_numeric($v) {
+		return preg_match('/^[0-9]+\.?[0-9]+$/', $v) ? true : false;
+	}
 }
 
 
