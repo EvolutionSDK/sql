@@ -32,6 +32,11 @@ class ListObj implements \Iterator, \Countable {
 	private $_extensionHandler;
 
 	/**
+	 * Table Config Data
+	 */
+	private $_tableConfig;
+
+	/**
 	 * m2m record connection
 	 */
 	protected $_m2m;
@@ -99,21 +104,26 @@ class ListObj implements \Iterator, \Countable {
 	 * @param string $table 
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function __construct($table = false, $connection = false) {
+	public function __construct($table = false, $connection = false, $config = array()) {
 		if($table) $this->_table = $table;
 		if($connection) $this->_connection = $connection;
 		
-		$get_table = Bundle::$db_structure_clean[$this->_table];
+		if(empty($config)) $this->_config = Bundle::$db_structure_clean[$this->_table];
+		else $this->_config = $config;
 
 		$spec = explode('.',$this->_table);
 		$bundle = array_shift($spec);
-		if(empty($get_table['singular']))
+		if(empty($this->_config['singular']))
 			throw new Exception("Double check your `singular:` key and value in `$bundle`'s bundle `./configure/sql_structure.yaml` file on the `$table` table");
-		if(empty($get_table['plural']))
+		if(empty($this->_config['plural']))
 			throw new Exception("Double check your `plural:` key and value in `$bundle`'s bundle `./configure/sql_structure.yaml` file on the `$table` table");
 
-		$this->_tb_singular = $get_table['singular'];
-		$this->_tb_plural = $get_table['plural'];
+		// This is a custom query
+		if(!empty($this->_config['raw']))
+			$this->_raw = true;
+
+		$this->_tb_singular = $this->_config['singular'];
+		$this->_tb_plural = $this->_config['plural'];
 		
 		/**
 		 * Add default table to tables select
@@ -1039,7 +1049,7 @@ class ListObj implements \Iterator, \Countable {
 	 * Standard query access
 	 */
 	public function auto() {
-		$fields = Bundle::$db_structure_clean[$this->_table]['fields'];
+		$fields = $this->_config[$this->_table]['fields'];
 		foreach($_REQUEST as $key => $value) {
 			if(empty($value)) continue;
 			$value = preg_replace('[^a-zA-Z0-9_.-]', '', $value);
@@ -1193,12 +1203,14 @@ class ListExtensionAccess {
 
 	public function method_exists($method) {
 		$method = "list" . ucfirst($method);
+		if(!is_object($this->extension)) throw new Exception("Extension `$this->extension` is not installed.");
 		return method_exists($this->extension, $method);
 	}
 
 	public function __call($method, $args) {
 		$method = "list" . ucfirst($method);
 		array_unshift($args, $this->list);
+		if(!is_object($this->extension)) throw new Exception("Extension `$this->extension` is not installed.");
 		return call_user_func_array(array($this->extension, $method), $args);
 	}
 
