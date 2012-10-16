@@ -113,17 +113,21 @@ class ListObj implements \Iterator, \Countable {
 
 		$spec = explode('.',$this->_table);
 		$bundle = array_shift($spec);
-		if(empty($this->_config['singular']))
-			throw new Exception("Double check your `singular:` key and value in `$bundle`'s bundle `./configure/sql_structure.yaml` file on the `$table` table");
-		if(empty($this->_config['plural']))
-			throw new Exception("Double check your `plural:` key and value in `$bundle`'s bundle `./configure/sql_structure.yaml` file on the `$table` table");
 
-		// This is a custom query
-		if(!empty($this->_config['raw']))
+		// Determine Raw
+		if((empty($this->_config["singular"]) && empty($this->config["plural"])) || !empty($this->_config["raw"]))
 			$this->_raw = true;
 
-		$this->_tb_singular = $this->_config['singular'];
-		$this->_tb_plural = $this->_config['plural'];
+		// Singular / Plurals for Model Usage
+		else {
+			if(empty($this->_config['singular']))
+				throw new Exception("Double check your `singular:` key and value in `$bundle`'s bundle `./configure/sql_structure.yaml` file on the `$table` table");
+			if(empty($this->_config['plural']))
+				throw new Exception("Double check your `plural:` key and value in `$bundle`'s bundle `./configure/sql_structure.yaml` file on the `$table` table");
+			
+			$this->_tb_singular = $this->_config['singular'];
+			$this->_tb_plural = $this->_config['plural'];
+		}
 		
 		/**
 		 * Add default table to tables select
@@ -203,7 +207,7 @@ class ListObj implements \Iterator, \Countable {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function condition($field, $value, $table = false, $verify = false) {
+	public function condition($field, $value = false, $table = false, $verify = false) {
 		/**
 		 * Reset query
 		 */
@@ -216,7 +220,7 @@ class ListObj implements \Iterator, \Countable {
 		$signal	= strpos($field, ' ') ? substr($field, strpos($field, ' ') + 1) : '=';
 		$field 	= strpos($field, ' ') ? substr($field, 0, strpos($field, ' ')) 	: $field;
 		$value 	= strpos($value, ':') === 0 && ctype_alpha(substr($value, 1) == true) ? '`'.substr($value, 1).'`' : $value;
-		$value 	= is_null($value) || $this->_is_numeric($value) || strpos($value, '`') === 0 ? $value : "'$value'";
+		$value 	= $value === false || is_null($value) || $this->_is_numeric($value) || strpos($value, '`') === 0 ? $value : "'$value'";
 		
 		/**
 		 * If is null make sure we are checking NULL not 'NULL' or '' or 0
@@ -243,12 +247,21 @@ class ListObj implements \Iterator, \Countable {
 	 * @return void
 	 * @author Kelly Lauren Summer Becker
 	 */
-	public function join($type = 'LEFT', $use, $cond) {
-		/**
-		 * @todo more join table support
-		 */
-		$this->_join_table[] = $use;
-		$this->_join .= " $type JOIN `$use` ON $cond";
+	public function join($type = 'LEFT', $use = null, $cond = null) {
+
+		if(!is_null($use) && !is_null($cond)) {
+			/**
+			 * @todo more join table support
+			 */
+			$this->_join_table[] = $use;
+			$this->_join .= " $type JOIN `$use` ON $cond";
+		}
+		else {
+			/**
+			 * @todo Add table name to _join_table[]
+			 */
+			$this->_join .= " $type";
+		}
 		
 		return $this;
 	}
@@ -392,9 +405,11 @@ class ListObj implements \Iterator, \Countable {
 	 */
 	public function add_select_field($field) {
 		$this->_fields_select .= ", $field";
+		return $this;
 	}
 	public function replace_select_field($field) {
 		$this->_fields_select = "$field";
+		return $this;
 	}
 	
 	/**
