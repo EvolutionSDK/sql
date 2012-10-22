@@ -244,7 +244,7 @@ class ListObj implements \Iterator, \Countable {
 	}
 	
 	/**
-	 * Many to many Left Join
+	 * Many to many Right Join
 	 *
 	 * @param string $use 
 	 * @param string $join 
@@ -265,9 +265,12 @@ class ListObj implements \Iterator, \Countable {
 			$cond .= " AND `$use`.\$flags & $flags = $flags";
 		}
 		
-		$this->join('LEFT', $use, $cond);
-		if(is_numeric($join)) $this->condition("`$use`.`\$id_a` =", $id);
-		else $this->condition("`$use`.`\$".$join."_id` =", $id);
+		$this->join('RIGHT', $use, $cond);
+
+		if($id !== false) {
+			if(is_numeric($join)) $this->condition("`$use`.`\$id_a` =", $id);
+			else $this->condition("`$use`.`\$".$join."_id` =", $id);
+		}
 		
 		return $this;
 	}
@@ -623,11 +626,17 @@ class ListObj implements \Iterator, \Countable {
 	 * @author Kelly Lauren Summer Becker
 	 */
 	public function m2mConnection($map) {
-		if($map instanceof Model);
-		else $map = e::map($map);
+		try {
+			if($map instanceof Model);
+			else $map = e::map($map);
 
-		$table = $map->__getTable();
-		$id = $map->id;
+			$table = $map->__getTable();
+			$id = $map->id;
+		}
+		catch(\MapException $e) {
+			$table = $map;
+			$id = false;
+		}
 
 		$table1 = "\$connect $table $this->_table";
 		$table2 = "\$connect $this->_table $table";

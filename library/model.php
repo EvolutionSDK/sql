@@ -622,8 +622,6 @@ class Model {
 					else if($this->_exists($table2)) $use = $table2;
 					else if($this->_exists($table3)) { $use = $table3; $same = true; }
 
-
-
 					if($plural) {
 						$return = new ListObj($matched, $this->_connection->slug);
 						return $return->m2m($use, (isset($same) ? 1 : $this->_table), $this->id, $flags);
