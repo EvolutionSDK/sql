@@ -297,6 +297,14 @@ class ListObj implements \Iterator, \Countable {
 		
 		return $this;
 	}
+
+	/**
+	 * Get M2M Connection Table
+	 * @author Kelly Becker
+	 */
+	public function m2mTable() {
+		return '$connect '.str_replace('-^-', ' ', $this->_m2m);
+	}
 	
 	/**
 	 * Process Multiple Field Conditions
@@ -777,7 +785,7 @@ class ListObj implements \Iterator, \Countable {
 		 */
 		if(count($this->_group_cond) > 0) {
 			foreach($this->_group_cond as $key => $condi) {
-				$gc[] = $count == 'sum' ? "`_group`" : "`$condi`";
+				$gc[] = $count == 'sum' ? "`_group`" : (strpos($condi, '`') === 0 ? $condi : "`$condi`");
 			}
 			$gc = implode(', ', $gc);
 			$cond .= 'GROUP BY '.$gc;
