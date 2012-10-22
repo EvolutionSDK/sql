@@ -970,24 +970,28 @@ class ModelExtensionAccess {
 
 	public function __set($var, $val) {
 		$method = 'modelSet';
+		if(!is_object($this->extension)) throw new Exception("Extension not included: $this->extension");
 		if(method_exists($this->extension, $method))
 			return $this->extension->$method($this->model, $var, $val);
 	}
 
 	public function __get($var) {
 		$method = 'modelGet';
+		if(!is_object($this->extension)) throw new Exception("Extension not included: $this->extension");
 		if(method_exists($this->extension, $method))
 			return $this->extension->$method($this->model, $var);
 	}
 
 	public function __isset($var) {
 		$method = 'modelIsset';
+		if(!is_object($this->extension)) throw new Exception("Extension not included: $this->extension");
 		if(method_exists($this->extension, $method))
 			return $this->extension->$method($this->model, $var);
 	}
 
 	public function __call($method, $args) {
 		$method = "model" . ucfirst($method);
+		if(!is_object($this->extension)) throw new Exception("Extension not included: $this->extension");
 		array_unshift($args, $this->model);
 		return call_user_func_array(array($this->extension, $method), $args);
 	}

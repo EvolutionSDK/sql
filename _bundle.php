@@ -262,7 +262,12 @@ class Bundle {
 
 	public static function extension($ext) {
 		$class = "\\Bundles\\SQL\\Extensions\\$ext";
-		return new $class;
+		try {
+			return new $class;
+		}
+		catch(e\AutoLoadException $e) {
+			return $ext;
+		}
 	} 
 	
 	/**
