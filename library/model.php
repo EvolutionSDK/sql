@@ -623,20 +623,42 @@ class Model {
 					else if($this->_exists($table3)) { $use = $table3; $same = true; }
 
 					if($plural) {
-						$return = new ListObj($matched, $this->_connection->slug);
+						// Get the list class from the table name
+						list($bundle, $model) = explode('.', $matched);
+						$class = "\\Bundles\\$bundle\\Lists\\$model";
+
+						// Attempt to instantiate
+						try { $return = new $class($matched, $this->_connection->slug); }
+						catch(e\AutoLoadException $e) { $return = new ListObj($matched, $this->_connection->slug); }
+
 						return $return->m2m($use, (isset($same) ? 1 : $this->_table), $this->id, $flags);
 					}
 					
 					else if(!$plural) {
-						$return = new ListObj($matched, $this->_connection->slug);
-						$return = $return->m2m($use, $this->_table, $this->id, $flags);
-						return $return;
+						// Get the list class from the table name
+						list($bundle, $model) = explode('.', $matched);
+						$class = "\\Bundles\\$bundle\\Lists\\$model";
+
+						// Attempt to instantiate
+						try { $return = new $class($matched, $this->_connection->slug); }
+						catch(e\AutoLoadException $e) { $return = new ListObj($matched, $this->_connection->slug); }
+						
+						return $return->m2m($use, $this->_table, $this->id, $flags);
 					}
 					
 				}
 				
 				if($plural) {
-					$return = new ListObj($matched, $this->_connection->slug);
+
+					// Get the list class from the table name
+					list($bundle, $model) = explode('.', $matched);
+					$class = "\\Bundles\\$bundle\\Lists\\$model";
+
+					// Attempt to instantiate
+					try { $return = new $class($matched, $this->_connection->slug); }
+					catch(e\AutoLoadException $e) { $return = new ListObj($matched, $this->_connection->slug); }
+
+					// Return with condition array
 					return $return->condition_array($conds);
 				}
 				

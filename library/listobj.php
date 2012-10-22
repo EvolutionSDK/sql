@@ -486,6 +486,15 @@ class ListObj implements \Iterator, \Countable {
 		$this->_has_query = false;
 		return $this;
 	}
+
+	/**
+	 * Get raw results
+	 * @author Kelly Becker
+	 */
+	public function getRaw() {
+		$this->_raw = true;
+		return $this;
+	}
 	
 	/**
 	 * Count Results
